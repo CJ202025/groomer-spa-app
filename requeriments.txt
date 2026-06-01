@@ -1,1 +1,2 @@
-npm install @supabase/supabase-js @supabase/ssr
+npm install @supabase/supabase-js @supabase/ssr 
+x

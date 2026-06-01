@@ -1,0 +1,36 @@
+CARPETA: lib/culqi
+RUTA: /src/lib/culqi/
+
+DESCRIPCIÓN:
+------------
+Simulación del SDK de Culqi y helpers para la integración con la pasarela de pago.
+Culqi es la pasarela de pagos más usada en Perú (equivalente a Stripe en Latam).
+
+ARCHIVOS QUE VIVEN AQUÍ:
+- client.ts          → Simulador del SDK de Culqi (reemplaza al script oficial de Culqi.js)
+- api.ts             → Funciones para llamar a la API de Culqi desde el servidor
+- test-cards.ts      → Tarjetas de prueba para simular pagos exitosos y fallidos
+- webhook-validator.ts → Función para validar la firma HMAC de los webhooks de Culqi
+- types.ts           → Interfaces TypeScript para Charges, Tokens, Customers, etc.
+
+FLUJO DE PAGO SIMULADO:
+1. El cliente crea un "token" de tarjeta llamando a culqi.createToken() (client.ts)
+2. El token se envía al servidor via fetch POST a /api/checkout/charge
+3. El servidor llama a culqi.createCharge(token, amount) (api.ts)
+4. La función simula la respuesta de Culqi según la tarjeta usada (test-cards.ts)
+5. Si el cobro es exitoso, Culqi envía un webhook a /api/webhooks (webhook-validator.ts)
+
+TARJETAS DE PRUEBA (test-cards.ts):
+- 4111 1111 1111 1111  → Pago APROBADO
+- 4000 0000 0000 0002  → Pago RECHAZADO (fondos insuficientes)
+- 4000 0000 0000 0069  → Pago RECHAZADO (tarjeta vencida)
+
+VARIABLES DE ENTORNO REQUERIDAS (.env.local):
+  CULQI_PUBLIC_KEY=pk_test_[clave-publica]
+  CULQI_PRIVATE_KEY=sk_test_[clave-privada]       ← SOLO en servidor, NUNCA en cliente
+  CULQI_WEBHOOK_SECRET=[secreto-para-validar-firma]
+
+NOTAS:
+- En producción, reemplazar client.ts por el script oficial: https://checkout.culqi.com/js/v4
+- La PRIVATE_KEY nunca debe exponerse al browser (usarla solo en api.ts server-side)
+- Culqi trabaja con montos en CENTAVOS: S/ 59.90 → 5990 (integer)

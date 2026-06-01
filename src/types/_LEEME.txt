@@ -1,0 +1,36 @@
+CARPETA: types
+RUTA: /src/types/
+
+DESCRIPCIÓN:
+------------
+Interfaces y tipos TypeScript del proyecto, generados a partir del esquema SQL de Supabase
+y definidos manualmente para el resto de la aplicación.
+
+ARCHIVOS QUE VIVEN AQUÍ:
+- database.types.ts    → Tipos AUTO-GENERADOS por la CLI de Supabase (NO editar a mano)
+- index.ts             → Re-exporta todos los tipos para imports limpios
+- app.types.ts         → Tipos de la UI/lógica que NO vienen de la base de datos
+
+TIPOS PRINCIPALES (database.types.ts - generados desde Supabase):
+- Database            → Tipo raíz con todas las tablas de Supabase
+- Tables<'productos'>  → Fila de la tabla "productos"
+- Tables<'reservas'>   → Fila de la tabla "reservas"
+- Tables<'usuarios'>   → Fila de la tabla "usuarios"
+- Tables<'servicios'>  → Fila de la tabla "servicios"
+- Tables<'ordenes'>    → Fila de la tabla "ordenes"
+- Tables<'groomers'>   → Fila de la tabla "groomers"
+
+TIPOS DE APP (app.types.ts - definidos manualmente):
+- CartItem             → Producto en el carrito con cantidad seleccionada
+- BookingWizardState   → Estado completo del wizard de reserva (paso a paso)
+- FilterState          → Filtros activos en el catálogo
+- ToastMessage         → Estructura de una notificación emergente
+
+CÓMO REGENERAR LOS TIPOS DE SUPABASE:
+  npx supabase gen types typescript --project-id [tu-project-id] > src/types/database.types.ts
+
+NOTAS:
+- Ejecutar el comando de regeneración cada vez que se modifique el esquema de la BD
+- El archivo database.types.ts está en .gitignore si contiene datos sensibles (revisar)
+- Usar los tipos genéricos de Supabase: Database['public']['Tables']['productos']['Row']
+  o importar el helper: type Producto = Tables<'productos'>

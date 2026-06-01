@@ -1,0 +1,30 @@
+CARPETA: components/ui
+RUTA: /src/components/ui/
+
+DESCRIPCIÓN:
+------------
+Biblioteca de componentes de interfaz de usuario genéricos y reutilizables.
+Estos componentes son la base del sistema de diseño de la aplicación.
+
+COMPONENTES QUE VIVEN AQUÍ:
+- Button.tsx        → Botón con variantes (primary, secondary, ghost, danger) y estados
+- Input.tsx         → Campo de texto con label, error message y soporte de íconos
+- Modal.tsx         → Ventana modal con overlay, animaciones y gestión de foco
+- Select.tsx        → Dropdown accesible con opciones dinámicas
+- Badge.tsx         → Etiquetas de estado (ej: "En stock", "Agendada", "Cancelada")
+- Spinner.tsx       → Indicador de carga
+- Toast.tsx         → Notificaciones emergentes (éxito, error, info)
+- Card.tsx          → Contenedor con sombra y bordes redondeados
+- Avatar.tsx        → Imagen circular de perfil con fallback a iniciales
+- Tooltip.tsx       → Información contextual al hacer hover
+
+PRINCIPIOS DE DISEÑO:
+- ACCESIBILIDAD PRIMERO: todos los componentes interactivos son navegables por teclado
+- ARIA correctos: role, aria-label, aria-expanded, aria-disabled según corresponda
+- Contraste mínimo 4.5:1 conforme WCAG 2.1 AA (configurado en tailwind.config.ts)
+- Soporte para modo oscuro (dark mode) mediante clases de Tailwind
+
+NOTAS:
+- NO incluir lógica de negocio aquí: estos componentes son "tontos" (presentacionales)
+- Cada componente exporta sus tipos TypeScript para uso seguro en el resto del proyecto
+- Referenciarse con el sistema de diseño definido en tailwind.config.ts

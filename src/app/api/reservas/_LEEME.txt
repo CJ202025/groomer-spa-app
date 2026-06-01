@@ -1,0 +1,37 @@
+CARPETA: api/reservas
+RUTA: /src/app/api/reservas/
+
+DESCRIPCIÓN:
+------------
+Endpoints con el algoritmo de disponibilidad de citas en tiempo real.
+
+ARCHIVOS PRINCIPALES:
+- route.ts                 →  GET  /api/reservas           (listar reservas del usuario)
+- route.ts                 →  POST /api/reservas           (crear nueva reserva)
+- disponibilidad/route.ts  →  GET  /api/reservas/disponibilidad  (horarios disponibles)
+- [id]/route.ts            →  GET/PATCH/DELETE  /api/reservas/[id]  (gestión de una reserva)
+
+ALGORITMO DE DISPONIBILIDAD (endpoint principal de este módulo):
+INPUT:
+  - groomer_id    → ID del groomer seleccionado
+  - servicio_id   → ID del servicio a realizar
+  - fecha         → Fecha deseada (YYYY-MM-DD)
+
+PROCESO:
+1. Obtener el horario laboral del groomer para ese día de la semana
+2. Consultar todas las reservas ya agendadas del groomer en esa fecha
+3. Calcular los bloques de tiempo ocupados (inicio + duración del servicio)
+4. Devolver solo los bloques disponibles como array de horarios
+
+OUTPUT:
+  - Array de horarios disponibles: ["09:00", "09:30", "10:00", ...]
+
+RESPONSABILIDADES ADICIONALES:
+- Crear reservas: validar disponibilidad antes de insertar (evitar doble reserva)
+- Cancelar/reagendar reservas: solo el dueño o un admin puede hacerlo
+- Listar las reservas del usuario autenticado
+
+NOTAS:
+- La disponibilidad debe consultarse en tiempo real para evitar conflictos
+- Usar Row Level Security (RLS) en Supabase para que cada usuario vea solo SUS reservas
+- Las reservas de hace más de 24h no pueden cancelarse (regla de negocio configurable)

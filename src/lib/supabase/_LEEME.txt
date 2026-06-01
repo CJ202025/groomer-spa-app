@@ -1,0 +1,37 @@
+CARPETA: lib/supabase
+RUTA: /src/lib/supabase/
+
+DESCRIPCIÓN:
+------------
+Clientes de Supabase configurados para los dos entornos de ejecución de Next.js:
+Server Side Rendering (SSR) y Browser (Client Side).
+
+ARCHIVOS QUE VIVEN AQUÍ:
+- server.ts      → Cliente Supabase para uso en Server Components, Route Handlers y Middleware
+- client.ts      → Cliente Supabase para uso en Client Components ('use client')
+- middleware.ts  → Helper para refrescar el token de sesión en middleware.ts raíz
+
+POR QUÉ DOS CLIENTES:
+Next.js tiene dos entornos: servidor (Node.js) y cliente (Browser).
+Supabase necesita acceder a las cookies de sesión de forma diferente en cada uno:
+- En el servidor: usa `cookies()` de next/headers (solo disponible server-side)
+- En el cliente: usa `document.cookie` del navegador
+
+FUNCIONES EXPORTADAS:
+server.ts:
+  - createClient()  → Retorna un SupabaseClient con acceso a cookies del servidor
+                      Úsalo en: page.tsx, layout.tsx, route.ts, actions.ts
+
+client.ts:
+  - createClient()  → Retorna un SupabaseClient configurado para el browser
+                      Úsalo en: componentes con 'use client' que necesiten auth en tiempo real
+
+VARIABLES DE ENTORNO REQUERIDAS (.env.local):
+  NEXT_PUBLIC_SUPABASE_URL=https://[proyecto].supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=[clave-anon-publica]
+
+NOTAS:
+- Instalar: npm install @supabase/supabase-js @supabase/ssr
+- NUNCA usar la SERVICE_ROLE key en el cliente del browser (es una clave secreta)
+- El middleware refresca el token de acceso automáticamente en cada request
+- Las políticas de Row Level Security (RLS) de Supabase controlan qué ve cada usuario

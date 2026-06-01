@@ -1,0 +1,30 @@
+CARPETA: api/stock
+RUTA: /src/app/api/stock/
+
+DESCRIPCIÓN:
+------------
+Endpoints para gestión, sincronización y alertas del inventario de productos.
+
+ARCHIVOS PRINCIPALES:
+- route.ts          →  GET /api/stock         (consultar stock actual de productos)
+- route.ts          →  PATCH /api/stock       (actualizar cantidad de un producto)
+- alertas/route.ts  →  GET /api/stock/alertas (obtener productos por debajo del umbral mínimo)
+
+RESPONSABILIDADES:
+- Consultar el stock actual de uno o varios productos desde Supabase
+- Decrementar el stock automáticamente al confirmar una compra (llamado desde webhooks)
+- Incrementar el stock cuando el admin registra nueva mercadería
+- Detectar y listar productos con stock bajo (ej: menos de 5 unidades)
+- Enviar alertas al panel de admin cuando el stock cae por debajo del umbral
+
+LÓGICA DE ALERTAS:
+- Umbral mínimo configurable por producto en la base de datos
+- Al decrementar stock, verificar si queda por debajo del umbral
+- Si es así, registrar una alerta en la tabla "stock_alerts" de Supabase
+- El panel admin consulta /api/stock/alertas para mostrar las notificaciones
+
+NOTAS:
+- Las operaciones de escritura (PATCH) requieren verificación de rol (admin o webhook)
+- Usar transacciones de Supabase para evitar condiciones de carrera en el stock
+- El campo "stock_reservado" permite separar el stock disponible del comprometido
+  en carritos activos (opcional, para fase avanzada)

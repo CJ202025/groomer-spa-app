@@ -1,0 +1,29 @@
+CARPETA: api/webhooks
+RUTA: /src/app/api/webhooks/
+
+DESCRIPCIÓN:
+------------
+Endpoint para recibir y procesar webhooks enviados por Culqi (simulados).
+
+ARCHIVO PRINCIPAL:
+- route.ts   →  POST /api/webhooks
+
+FLUJO DE UN WEBHOOK:
+1. Culqi (o el simulador en /lib/culqi/) realiza un POST a esta ruta
+2. El servidor valida la firma/secreto del webhook para evitar peticiones falsas
+3. Se identifica el tipo de evento (ej: "charge.succeeded", "charge.failed")
+4. Según el evento, se ejecuta la acción correspondiente:
+   - charge.succeeded → Crear la orden en Supabase, descontar stock, enviar confirmación
+   - charge.failed    → Marcar el intento de pago como fallido, notificar al usuario
+5. Se responde con HTTP 200 para confirmar la recepción
+
+TIPOS DE EVENTOS MANEJADOS:
+- charge.succeeded    → Pago aprobado
+- charge.failed       → Pago rechazado
+- charge.disputed     → Disputa / contracargo (para futuro)
+
+NOTAS:
+- En este proyecto Culqi es una SIMULACIÓN, pero la arquitectura es idéntica a producción
+- La validación de firma usa un secreto compartido (CULQI_WEBHOOK_SECRET) en .env.local
+- Este endpoint NO requiere autenticación de usuario (es llamado por Culqi, no por el browser)
+- Agregar siempre logging de los eventos recibidos para auditoría

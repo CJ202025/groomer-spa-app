@@ -1,0 +1,32 @@
+CARPETA: components/booking
+RUTA: /src/components/booking/
+
+DESCRIPCIÓN:
+------------
+Componentes del flujo de reserva de citas de grooming.
+Son los componentes más complejos de la app ya que manejan estado, fechas y disponibilidad.
+
+COMPONENTES QUE VIVEN AQUÍ:
+- BookingCalendar.tsx    → Calendario mensual para seleccionar la fecha de la cita
+- TimeSlotPicker.tsx     → Grilla de horarios disponibles para la fecha seleccionada
+- ServiceSelector.tsx    → Selector de tipo de servicio (baño, corte, baño+corte, etc.)
+- GroomerSelector.tsx    → Selector del groomer preferido con foto y especialidades
+- PetForm.tsx            → Formulario con datos de la mascota (nombre, raza, peso, notas)
+- BookingSummary.tsx     → Resumen final antes de confirmar (servicio, fecha, hora, mascota)
+- BookingSteps.tsx       → Indicador visual de pasos del wizard (1→2→3→4)
+- AvailabilityBadge.tsx  → Muestra si hay "Alta", "Media" o "Baja" disponibilidad ese día
+
+FLUJO DE USO (orden de renderizado en el wizard):
+1. BookingSteps (navegación entre pasos)
+2. ServiceSelector → el usuario elige qué servicio quiere
+3. GroomerSelector → el usuario elige a quién prefiere (u "cualquier groomer disponible")
+4. BookingCalendar → el usuario elige la fecha
+5. TimeSlotPicker  → consulta /api/reservas/disponibilidad y muestra los huecos libres
+6. PetForm         → datos de la mascota
+7. BookingSummary  → confirmación final
+
+NOTAS:
+- BookingCalendar deshabilita fechas pasadas y días sin disponibilidad (festivos, etc.)
+- TimeSlotPicker hace un fetch a /api/reservas/disponibilidad cada vez que cambia la fecha
+- Guardar el estado del wizard en sessionStorage para sobrevivir recargas accidentales
+- AvailabilityBadge usa colores semafóricos: verde (alta), amarillo (media), rojo (baja)

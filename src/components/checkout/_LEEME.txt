@@ -1,0 +1,32 @@
+CARPETA: components/checkout
+RUTA: /src/components/checkout/
+
+DESCRIPCIÓN:
+------------
+Componentes del flujo de carrito de compras y pasarela de pago simulada con Culqi.
+
+COMPONENTES QUE VIVEN AQUÍ:
+- MiniCart.tsx           → Carrito lateral deslizable (drawer) con productos y total
+- CartItem.tsx           → Fila de producto dentro del carrito (imagen, nombre, cantidad, precio)
+- CartSummary.tsx        → Resumen de precios: subtotal, descuentos, Groomer Credits, IGV, total
+- QuantitySelector.tsx   → Control de +/- para ajustar la cantidad de un producto
+- CulqiPaymentForm.tsx   → Formulario simulado de tarjeta de crédito/débito (interfaz de Culqi)
+- OrderConfirmation.tsx  → Mensaje de éxito con número de orden y detalles del pedido
+- PaymentError.tsx       → Mensaje de error con opción de reintentar el pago
+- GroomerCreditsToggle.tsx → Switch para aplicar o no los Groomer Credits al total
+- CouponInput.tsx        → Campo para ingresar un código de cupón de descuento
+
+FLUJO DE USO:
+1. MiniCart (drawer) → el usuario revisa y edita su carrito
+2. Al ir a /checkout, CartSummary muestra el desglose completo de precios
+3. GroomerCreditsToggle permite aplicar saldo de créditos
+4. CouponInput valida y aplica cupones de descuento
+5. CulqiPaymentForm captura los datos de la tarjeta (simulado)
+6. Tras el pago: OrderConfirmation (éxito) o PaymentError (fallo)
+
+NOTAS:
+- MiniCart es accesible desde cualquier página vía el ícono del carrito en el navbar
+- CulqiPaymentForm simula la interfaz real de Culqi pero NO procesa pagos reales
+- Las tarjetas de prueba están definidas en /lib/culqi/test-cards.ts
+- El estado del carrito (items, totales) se gestiona en el store de Zustand
+- CartSummary debe recalcular en tiempo real cuando cambia cantidad o se aplican descuentos

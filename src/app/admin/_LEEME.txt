@@ -1,0 +1,29 @@
+CARPETA: admin
+RUTA: /src/app/admin/
+
+DESCRIPCIÓN:
+------------
+Panel de administración interna para gestionar el negocio.
+URL pública: /admin (acceso restringido solo a roles "admin" o "groomer")
+
+PÁGINAS / SECCIONES QUE CONTIENE:
+- /admin                → Dashboard con métricas clave (ventas, citas del día, stock bajo)
+- /admin/citas          → Gestión de todas las citas: ver, confirmar, cancelar, reasignar
+- /admin/stock          → Control de inventario: editar cantidades, agregar productos, ver alertas
+- /admin/usuarios       → Listado de clientes registrados y gestión de roles
+- /admin/reportes       → Reportes de ventas, servicios más solicitados y ocupación de groomers
+- /admin/groomers       → Gestión del equipo: horarios, servicios que ofrecen, disponibilidad
+
+RESPONSABILIDADES:
+- Visualización de KPIs del negocio en tiempo real
+- CRUD completo de productos (nombre, precio, SKU, stock, imágenes)
+- CRUD de servicios de grooming (precio, duración, disponibilidad por groomer)
+- Gestión del calendario de citas con vista diaria/semanal
+- Generación y exportación de reportes (CSV o PDF)
+- Configuración de alertas de stock bajo (umbral configurable)
+
+NOTAS:
+- ACCESO MUY RESTRINGIDO: middleware.ts verifica que el usuario tenga rol "admin"
+- Un usuario con rol "groomer" puede ver solo SUS citas del día, no el panel completo
+- Los datos sensibles (ventas, reportes) nunca deben exponerse al cliente sin validación de rol
+- Las acciones de escritura (editar stock, cancelar citas) usan Server Actions o API Routes

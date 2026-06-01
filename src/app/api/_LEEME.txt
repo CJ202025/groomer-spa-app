@@ -1,0 +1,28 @@
+CARPETA: api
+RUTA: /src/app/api/
+
+DESCRIPCIÓN:
+------------
+Carpeta raíz de todos los endpoints del backend de la aplicación.
+En Next.js, cada subcarpeta con un archivo "route.ts" se convierte en un API endpoint.
+
+ESTRUCTURA INTERNA:
+- /api/webhooks/   → Recepción de webhooks de Culqi (eventos de pago)
+- /api/stock/      → Alertas y sincronización de inventario
+- /api/reservas/   → Algoritmo de disponibilidad de citas en tiempo real
+
+CONVENCIÓN DE ARCHIVOS:
+Cada endpoint sigue el patrón:
+  /api/[recurso]/route.ts   →  Maneja GET, POST, PUT, DELETE según corresponda
+
+RESPONSABILIDADES GENERALES:
+- Exponer lógica de negocio de forma segura al frontend (y a servicios externos)
+- Validar datos de entrada antes de procesar
+- Autenticar peticiones usando el token de sesión de Supabase (cookies)
+- Devolver respuestas en formato JSON con códigos HTTP apropiados
+
+NOTAS:
+- Estos endpoints son ejecutados en el servidor de Next.js (Node.js runtime)
+- NO contienen lógica de UI ni componentes React
+- Para acciones que requieren autenticación, verificar el session token de Supabase
+  usando `createServerClient` de @supabase/ssr antes de procesar la petición

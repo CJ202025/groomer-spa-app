@@ -1,0 +1,24 @@
+CARPETA: (shop)
+RUTA: /src/app/(shop)/
+
+DESCRIPCIÓN:
+------------
+Grupo de rutas del catálogo / tienda de productos y servicios.
+Al igual que (auth), los paréntesis son un agrupador lógico de Next.js
+y NO aparecen en la URL pública.
+
+PÁGINAS QUE CONTIENE:
+- /catalogo           → Listado general de productos y servicios de grooming
+- /producto/[sku]     → Página de detalle de un producto específico (ruta dinámica por SKU)
+
+RESPONSABILIDADES:
+- Mostrar el catálogo completo con filtros (categoría, precio, raza)
+- Renderizado de tarjetas de producto con imágenes, precio y disponibilidad de stock
+- Página de detalle con galería, descripción, ingredientes/características y botón "Agregar al carrito"
+- Integración con el sistema de inventario (mostrar "Sin stock" en tiempo real)
+- SEO: metadata dinámica por producto (generateMetadata en Next.js)
+
+NOTAS:
+- [sku] es un segmento dinámico: /producto/shampoo-canino-premium → SKU = "shampoo-canino-premium"
+- Los datos de productos se obtienen desde Supabase (Server Components para SSR/SSG)
+- La lógica del carrito vive en el estado global (Zustand o Context), no aquí

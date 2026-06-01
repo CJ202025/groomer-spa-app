@@ -1,0 +1,24 @@
+CARPETA: (auth)
+RUTA: /src/app/(auth)/
+
+DESCRIPCIÓN:
+------------
+Grupo de rutas de autenticación de Next.js (Route Group).
+Los paréntesis indican que "(auth)" es solo un agrupador lógico y NO forma parte de la URL pública.
+
+PÁGINAS QUE CONTIENE:
+- /login      → Página de inicio de sesión con Supabase Auth
+- /registro   → Página de registro de nuevos usuarios (clientes o groomers)
+
+RESPONSABILIDADES:
+- Formularios de login y registro con validación
+- Integración con Supabase Auth (signIn, signUp)
+- Redirección post-autenticación al dashboard o home
+- Manejo de errores de autenticación (credenciales inválidas, email ya registrado)
+- Soporte para OAuth (Google, etc.) si se implementa
+
+NOTAS:
+- Las rutas en este grupo están protegidas de forma inversa: si el usuario
+  YA está autenticado, debe ser redirigido fuera (middleware.ts se encarga).
+- Los layouts específicos de auth (ej. pantalla dividida con imagen) van en
+  un layout.tsx dentro de esta carpeta.

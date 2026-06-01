@@ -1,0 +1,25 @@
+CARPETA: (booking)
+RUTA: /src/app/(booking)/
+
+DESCRIPCIÓN:
+------------
+Grupo de rutas del flujo de reserva de citas de grooming.
+Los paréntesis son un agrupador lógico de Next.js: NO forman parte de la URL.
+
+PÁGINAS QUE CONTIENE:
+- /reservar        → Flujo paso a paso para agendar una cita (servicio → fecha → hora → mascota)
+- /confirmacion    → Pantalla de confirmación tras completar la reserva
+
+RESPONSABILIDADES:
+- Wizard/stepper de reserva: selección de servicio, groomer, fecha y hora disponible
+- Consulta en tiempo real de disponibilidad (llama a /api/reservas)
+- Validación de datos de la mascota (nombre, raza, peso)
+- Generación del resumen de cita antes de confirmar
+- Página de confirmación con número de reserva, fecha, hora y detalles del servicio
+- Envío de correo de confirmación (si se implementa con Supabase Edge Functions)
+
+NOTAS:
+- El calendario interactivo de selección de horarios vive en /components/booking/
+- Las rutas aquí DEBEN estar protegidas: solo usuarios autenticados pueden reservar
+  (el middleware.ts se encarga de la protección)
+- La disponibilidad de horarios se consulta al API Route /api/reservas en tiempo real

@@ -1,0 +1,27 @@
+CARPETA: checkout
+RUTA: /src/app/checkout/
+
+DESCRIPCIÓN:
+------------
+Flujo completo de carrito de compras y simulación de pasarela de pago con Culqi.
+URL pública: /checkout
+
+PÁGINAS / PASOS QUE CONTIENE:
+- /checkout          → Vista del carrito con productos seleccionados y resumen de precios
+- /checkout/pago     → Formulario de pago simulado (datos de tarjeta → Culqi)
+- /checkout/exito    → Pantalla de éxito tras pago aprobado
+- /checkout/error    → Pantalla de error si el pago es rechazado
+
+RESPONSABILIDADES:
+- Mostrar y editar el contenido del carrito (cantidad, eliminar productos)
+- Calcular subtotal, descuentos, Groomer Credits aplicados e IGV (18%)
+- Presentar el formulario de pago (integración simulada de Culqi Checkout)
+- Enviar la orden al backend (/api/webhooks) tras la confirmación de pago
+- Actualizar el stock en tiempo real al confirmar la compra
+- Generar un número de orden único y confirmación al usuario
+
+NOTAS:
+- RUTA PROTEGIDA: solo usuarios autenticados pueden acceder al checkout
+- La pasarela de Culqi es una SIMULACIÓN: usa tarjetas de prueba definidas en /lib/culqi/
+- El estado del carrito se maneja con Zustand o Context API, persistido en localStorage
+- Al completar la compra, se descuenta el stock en Supabase y se notifica vía webhook

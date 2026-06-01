@@ -1,0 +1,25 @@
+CARPETA: components/catalog
+RUTA: /src/components/catalog/
+
+DESCRIPCIÓN:
+------------
+Componentes específicos para mostrar productos y servicios del catálogo/tienda.
+Estos componentes son más específicos que los de /ui/ y contienen lógica de presentación
+del dominio de productos.
+
+COMPONENTES QUE VIVEN AQUÍ:
+- ProductCard.tsx        → Tarjeta de producto con imagen, nombre, precio y botón "Agregar al carrito"
+- ServiceCard.tsx        → Tarjeta de servicio de grooming con duración, precio y disponibilidad
+- ProductGrid.tsx        → Grilla responsiva de tarjetas de producto
+- ProductFilters.tsx     → Panel de filtros (categoría, precio, raza, disponibilidad)
+- ProductBadge.tsx       → Indicador de "Nuevo", "Oferta", "Sin stock" sobre la tarjeta
+- StockIndicator.tsx     → Muestra el nivel de stock (disponible / bajo / agotado)
+- PriceDisplay.tsx       → Formatea y muestra precios en soles (S/) con descuentos tachados
+- ProductSearch.tsx      → Barra de búsqueda con sugerencias en tiempo real
+
+NOTAS:
+- ProductCard y ServiceCard son los componentes más usados: priorizar su rendimiento
+- Usar Image de Next.js (next/image) para optimización automática de imágenes
+- El botón "Agregar al carrito" en ProductCard dispara la acción del store de Zustand
+- StockIndicator se actualiza en tiempo real consultando /api/stock
+- ProductFilters debe preservar los filtros en los query params de la URL (para compartir)

@@ -1,0 +1,26 @@
+CARPETA: dashboard
+RUTA: /src/app/dashboard/
+
+DESCRIPCIÓN:
+------------
+Panel de control personal del usuario autenticado.
+URL pública: /dashboard
+
+PÁGINAS / SECCIONES QUE CONTIENE:
+- /dashboard            → Vista principal con resumen de actividad
+- /dashboard/citas      → Historial y próximas citas del usuario
+- /dashboard/pedidos    → Historial de compras de productos
+- /dashboard/creditos   → Saldo y movimientos de Groomer Credits (programa de fidelidad)
+- /dashboard/perfil     → Datos personales, mascotas registradas y preferencias
+
+RESPONSABILIDADES:
+- Mostrar un resumen personalizado al usuario tras iniciar sesión
+- Listar citas activas, pasadas y canceladas con opción de reagendar/cancelar
+- Mostrar historial de órdenes de la tienda con estado de envío
+- Gestionar el saldo de "Groomer Credits" (puntos acumulados por compras/reservas)
+- Editar perfil de usuario y datos de mascotas
+
+NOTAS:
+- RUTA PROTEGIDA: requiere autenticación (middleware.ts redirige a /login si no hay sesión)
+- Los datos se obtienen con Server Components desde Supabase (RLS activo por seguridad)
+- Los Groomer Credits son el sistema de fidelidad: se acumulan y canjean en checkout

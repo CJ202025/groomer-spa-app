@@ -1,0 +1,22 @@
+// proxy.ts
+import { type NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/proxy";
+
+export async function proxy(request: NextRequest) {
+    return await updateSession(request);
+}
+
+export const config = {
+    matcher: [
+        /*
+         * Aplica el proxy a todas las rutas excepto:
+         * - _next/static (archivos estáticos)
+         * - _next/image (optimización de imágenes)
+         * - favicon.ico
+         * - archivos de imagen
+         * Rutas protegidas (lógica de roles se implementa en Fase 2):
+         * /admin/:path*, /dashboard/:path*, /checkout/:path*
+         */
+        "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    ],
+};

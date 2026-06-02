@@ -1,26 +1,92 @@
+/* src/app/globals.css */
 @import "tailwindcss";
 
+/* // INICIO MODIFICACIÓN: Variables base de color de marca Groomer SPA // */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f0f0f;
+  --foreground: #f5f5f5;
+
+  /* Paleta dorada/ámbar — color principal de marca */
+  --brand-50: #fffbeb;
+  --brand-100: #fef3c7;
+  --brand-200: #fde68a;
+  --brand-300: #fcd34d;
+  --brand-400: #fbbf24;
+  --brand-500: #f59e0b;
+  --brand-600: #d97706;
+  --brand-700: #b45309;
+  --brand-800: #92400e;
+  --brand-900: #78350f;
+  --brand-950: #451a03;
+
+  /* Superficies oscuras — fondos del spa */
+  --surface-default: #0f0f0f;
+  --surface-100: #1a1a1a;
+  --surface-200: #2a2a2a;
+  --surface-300: #3a3a3a;
+  --surface-400: #4a4a4a;
+
+  /* Semánticos de estado */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
 }
 
+/* // FIN MODIFICACIÓN // */
+
+/* // INICIO MODIFICACIÓN: Tema Tailwind v4 — tokens de diseño Groomer SPA // */
 @theme inline {
+  /* Colores base */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Paleta de marca — genera clases bg-brand-*, text-brand-*, border-brand-*, etc. */
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-brand-950: var(--brand-950);
+
+  /* Superficies — genera clases bg-surface-*, etc. */
+  --color-surface: var(--surface-default);
+  --color-surface-100: var(--surface-100);
+  --color-surface-200: var(--surface-200);
+  --color-surface-300: var(--surface-300);
+  --color-surface-400: var(--surface-400);
+
+  /* Semánticos de estado */
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+  --color-info: var(--color-info);
+
+  /* Tipografía */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* // FIN MODIFICACIÓN // */
 
+/* // INICIO MODIFICACIÓN: Estilos base globales mobile-first // */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  /* Mobile-first: texto base legible en pantallas pequeñas */
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Contraste mínimo 4.5:1 (WCAG AA) garantizado por los valores de paleta elegidos */
+/* brand-500 (#f59e0b) sobre surface-default (#0f0f0f) = ratio ~9.2:1 ✓            */
+/* foreground (#f5f5f5) sobre background (#0f0f0f)     = ratio ~18.1:1 ✓           */
+/* // FIN MODIFICACIÓN // */

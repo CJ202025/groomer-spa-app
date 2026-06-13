@@ -27,8 +27,58 @@ export async function updateSession(request: NextRequest) {
         },
     );
 
-    // Refrescar la sesión - IMPORTANTE: usar getClaims() no getSession()
-    await supabase.auth.getClaims();
+    //
+    // // INICIO MODIFICACION - Fase 2: Protección de rutas y redirección por roles
+    //
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    const isProtectedRoute =
+        request.nextUrl.pathname.startsWith("/dashboard") ||
+        request.nextUrl.pathname.startsWith("/admin") ||
+        request.nextUrl.pathname.startsWith("/checkout");
+
+    const isAuthRoute =
+        request.nextUrl.pathname.startsWith("/login") ||
+        request.nextUrl.pathname.startsWith("/registro");
+
+    if (isProtectedRoute && !user) {
+        return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    if (user) {
+        if (isAuthRoute) {
+            return NextResponse.redirect(new URL("/dashboard", request.url));
+        }
+
+        if (isProtectedRoute) {
+            // Se agregó as any para resolver "Property 'rol' does not exist on type 'never'"
+            const { data: profile } = (await supabase
+                .from("users")
+                .select("rol")
+                .eq("id", user.id)
+                .single()) as any;
+
+            const rol = profile?.rol;
+
+            if (
+                rol === "admin" &&
+                request.nextUrl.pathname.startsWith("/dashboard")
+            ) {
+                return NextResponse.redirect(new URL("/admin", request.url));
+            }
+
+            if (
+                (rol === "cliente" || rol === "barbero") &&
+                request.nextUrl.pathname.startsWith("/admin")
+            ) {
+                return NextResponse.redirect(new URL("/dashboard", request.url));
+            }
+        }
+    }
+    // // FIN MODIFICACION
+    //
 
     return supabaseResponse;
 }

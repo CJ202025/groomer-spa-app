@@ -4,7 +4,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { formatearFecha, formatearSoles } from "@/lib/utils";
+import { formatDate, formatCurrency } from "@/lib/utils";
 
 interface PageProps {
   searchParams: Promise<{ id?: string }>;
@@ -104,14 +104,14 @@ export default async function ConfirmacionPage({ searchParams }: PageProps) {
             <div className="flex justify-between">
               <dt className="text-stone-500">Fecha y hora</dt>
               <dd className="font-medium text-stone-900 text-right">
-                {formatearFecha(cita.fecha_hora_inicio)}
+                {formatDate(cita.fecha_hora_inicio)}
               </dd>
             </div>
             {servicio && (
               <div className="flex justify-between border-t border-stone-100 pt-3">
                 <dt className="font-semibold text-stone-700">Valor</dt>
                 <dd className="font-bold text-stone-900">
-                  {formatearSoles(servicio.precio_base)}
+                  {formatCurrency(servicio.precio_base)}
                 </dd>
               </div>
             )}

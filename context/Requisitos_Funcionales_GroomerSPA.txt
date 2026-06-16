@@ -1,0 +1,58 @@
+Módulo 1: Gestión de Usuarios y Autenticación (Supabase Auth)
+RF-01: Registro e Inicio de Sesión. El sistema debe permitir a los clientes registrarse e iniciar sesión utilizando correo electrónico y contraseña o mediante proveedores OAuth (ej. Google).
+
+RF-02: Gestión de Perfil de Usuario. El usuario debe poder actualizar su información personal (nombre completo, teléfono, DNI/CE) y visualizar su historial de citas y pedidos.
+
+RF-03: Asignación y Control de Roles. El sistema debe clasificar a los usuarios en tres roles específicos: 'cliente', 'barbero' y 'admin', restringiendo las vistas y acciones según el rol correspondiente.
+
+Módulo 2: Reservas y Gestión de Citas
+RF-04: Exploración de Servicios. El sistema debe mostrar el catálogo de servicios de barbería/spa con su descripción, variante (Senior/Master) y precio base.
+
+RF-05: Creación de Citas. El cliente debe poder seleccionar un servicio, elegir a un barbero específico y seleccionar una fecha y hora de inicio disponible.
+
+RF-06: Bloqueo de Disponibilidad de Barberos. Al iniciar una cita, el sistema debe bloquear al barbero asignado. Este no volverá a aparecer disponible en el calendario hasta que el estado de la cita sea marcado manualmente como "completada".
+
+RF-07: Gestión de Estados de Cita. El sistema (vía admin o barbero) debe permitir cambiar el estado de la cita (pendiente, confirmada, completada, cancelada).
+
+RF-08: Aplicación de Penalidades por Cancelación. Si un cliente cancela una cita confirmada con menos de 24 horas de anticipación, el sistema debe calcular y retener una penalidad del 50% del valor (en el entorno simulado).
+
+Módulo 3: E-Commerce y Catálogo Híbrido
+RF-09: Catálogo de Productos. El sistema debe mostrar los productos B2C agrupados por categoría, mostrando SKU, imagen, descripción y precio.
+
+RF-10: Funcionalidad de Carrito de Compras. El cliente debe poder agregar productos al carrito, modificar cantidades y eliminar ítems, visualizando los cambios en tiempo real a través de un drawer (panel lateral).
+
+RF-11: Selección de Modalidad de Entrega. En el checkout, el sistema debe permitir elegir entre 'Recojo', 'Delivery_Local' y 'Nacional', recalculando el costo de envío dinámicamente.
+
+RF-12: Clasificación de Inventario. El sistema debe diferenciar lógicamente los productos de stock físico y los de modalidad dropshipping para los procesos de preparación (solo visible para admin).
+
+Módulo 4: Pagos Simulados y Facturación
+RF-13: Procesamiento de Pago Simulado. El sistema debe integrar la librería de Culqi en entorno Sandbox (pruebas). Al ingresar tarjetas de prueba, el sistema debe tokenizar la información y almacenar el token_pago generado, sin realizar cobros reales.
+
+RF-14: Cálculo de Totales. El sistema debe sumar el subtotal de productos/servicios, añadir el costo de envío y restar los descuentos aplicados para generar el total exacto de la orden.
+
+RF-15: Emisión de Comprobantes. Tras una orden completada (simulada), el sistema debe disparar un webhook para generar una simulación de Boleta Electrónica en PDF (vía OSE/SUNAT) y enlazarla al pedido.
+
+Módulo 5: Fidelización (Groomer Credits) y Suscripciones (Groomer Elite)
+RF-16: Acumulación de Puntos. Por cada S/ 1 gastado en un pedido o cita completada, el sistema debe sumar automáticamente 1 crédito a la cuenta del usuario.
+
+RF-17: Bonos Automáticos. El sistema debe otorgar créditos adicionales automáticamente ante eventos específicos (ej. +100 puntos en cumpleaños, +30 puntos por dejar una reseña).
+
+RF-18: Canje de Groomer Credits. En el checkout, el sistema debe ofrecer la opción de descontar S/ 5 del total de la compra por cada bloque de 100 puntos que el usuario decida utilizar.
+
+RF-19: Gestión de Membresía "Elite". El sistema debe permitir la suscripción recurrente (S/ 39 al mes, simulada). Al ser activo, el campo es_miembro_elite cambia a verdadero.
+
+RF-20: Aplicación de Beneficios Elite. Si el usuario es Elite, el sistema debe aplicar automáticamente un 15% de descuento en el carrito e identificarlo visualmente en la gestión de citas para darle prioridad.
+
+Módulo 6: Panel de Administración (Backoffice)
+RF-21: Gestión de Pedidos. El administrador debe poder visualizar todos los pedidos generados y actualizar su estado logístico ('confirmado' -> 'en_preparacion' -> 'completado').
+
+RF-22: Control de Inventario. Al confirmarse un pedido, el sistema debe restar automáticamente la cantidad vendida del stock_actual de cada producto físico en la base de datos (Supabase).
+
+RF-23: Alertas de Stock Mínimo. Cuando el stock_actual de un producto sea igual o inferior a su stock_minimo, el sistema debe generar una alerta visual en el panel de administrador para solicitar reabastecimiento.
+
+Módulo 7: Soporte y Notificaciones
+RF-24: Integración de Chatbot. El sistema debe contar con un widget de chat (simulando ManyChat/WhatsApp) que ofrezca un árbol de decisiones para consultas frecuentes.
+
+RF-25: Derivación a Humano. Si el cliente selecciona opciones de reclamo o cancelación compleja en el chatbot, la conversación debe enlazarse para que un administrador intervenga.
+
+RF-26: Notificaciones por Correo. El sistema debe enviar correos electrónicos transaccionales automáticos cuando un usuario se registra, cuando confirma una cita, y cuando se actualiza el estado de un pedido.

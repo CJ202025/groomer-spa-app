@@ -1,0 +1,33 @@
+Usuarios (Users - integrado con Supabase Auth):id (UUID, PK) nombre_completo, email, telefono, dni_ce rol (enum: 'cliente', 'admin', 'barbero') groomer_credits (int) - Sistema de puntos es_miembro_elite (boolean) - Para suscripciones Groomer Elite Servicios (Services):id (UUID, PK) sku, nombre, descripcion_corta, descripcion_larga precio_base (decimal) duracion_minutos (int) - Opcional, se puede mantener solo como un aproximado referencial para el cliente, pero no restringe el sistema. variante_nivel (enum: 'Senior', 'Master') Productos (Products - Catálogo B2C):id (UUID, PK) sku, nombre, descripcion precio (decimal) stock_actual (int), stock_minimo (int) categoria (ej. 'Cuidado Facial', 'Cuidado de Barba') es_dropshipping (boolean) - Modelo logístico híbrido Citas / Reservas (Appointments):id (UUID, PK) usuario_id (FK -> Usuarios) servicio_id (FK -> Servicios) barbero_id (FK -> Usuarios) fecha_hora_inicio - Hora de inicio del servicio. (Se ha eliminado fecha_hora_fin) estado (enum: 'pendiente', 'confirmada', 'completada', 'cancelada') - Lógica: El barbero asignado se mantiene ocupado/comprometido en el sistema hasta que este estado cambie manualmente o por confirmación a 'completada'. Pedidos / Ventas (Orders):id (UUID, PK) usuario_id (FK -> Usuarios) total (decimal), subtotal (decimal), costo_envio (decimal) metodo_envio (enum: 'Recojo', 'Delivery_Local', 'Nacional') estado_pedido ('confirmado', 'en_preparacion', 'completado') token_pago (string) - Integración Culqi (Simulada): Almacena el token de la transacción generada en el entorno de pruebas/sandbox de la pasarela, garantizando que no se procesen cobros reales con tarjetas de crédito/débito o Yape.   Detalle del Pedido (Order_Items):id (UUID, PK) pedido_id (FK -> Pedidos) producto_id (FK -> Productos, nullable) servicio_id (FK -> Servicios, nullable) cantidad (int) subtotal (decimal) 
+
+2. Estructura de Carpetas Next.js (Full Stack, TypeScript)Considerando el uso de Supabase, React, Tailwind y el enfoque Mobile-First, esta es la estructura recomendada bajo el App Router:  
+
+Plaintextgroomer-spa-nextjs/
+├── src/
+│   ├── app/                    # Frontend (Páginas) y Backend (APIs)
+│   │   ├── (auth)/             # Rutas: /login, /registro
+│   │   ├── (shop)/             # Rutas: /catalogo, /producto/[sku]
+│   │   ├── (booking)/          # Rutas: /reservar, /confirmacion
+│   │   ├── dashboard/          # Rutas: /dashboard (Mis citas, pedidos, Groomer Credits)
+│   │   ├── checkout/           # Flujo de carrito y simulación de pago Culqi
+│   │   ├── admin/              # Panel para gestionar stock, citas y reportes
+│   │   ├── api/                # Endpoints Backend (Next.js Route Handlers)
+│   │   │   ├── webhooks/       # Recepción de webhooks de Culqi (pagos simulados)
+│   │   │   ├── stock/          # Alertas y sincronización de inventario
+│   │   │   └── reservas/       # Algoritmo de disponibilidad de tiempo real
+│   │   └── page.tsx            # Home Page
+│   ├── components/             # Componentes React reutilizables
+│   │   ├── ui/                 # Botones, Modales, Inputs (Accesibles por teclado)
+│   │   ├── catalog/            # Tarjetas de producto/servicio
+│   │   ├── booking/            # Calendario de selección de citas
+│   │   └── checkout/           # Mini carrito lateral y pasarela simulada
+│   ├── lib/                    # Lógica de negocio y librerías externas
+│   │   ├── supabase/           # Cliente SSR/Browser de Supabase
+│   │   ├── culqi/              # Simulación de SDK / llamadas API a Culqi
+│   │   └── utils.ts            # Formateadores de moneda, fechas, etc.
+│   └── types/                  # Interfaces TypeScript generadas desde Supabase SQL
+├── public/                     # Imágenes, logos
+├── tailwind.config.ts          # Configuración de diseño accesible (Contraste 4.5:1)
+└── middleware.ts               # Protección de rutas (Auth) con Supabase
+
+3. Extras para mayor precisión (Opcionales Solicitados)Reglas de Negocio ExtraídasGestión de Stock Híbrido: Los productos de alta rotación (champús, aceites) tienen stock propio físico para entregas en el mismo día (< 4 horas). Los de baja rotación operan por dropshipping con proveedores.  Alertas Automáticas: Cuando un SKU alcanza su "Stock Mínimo" (ej. 25 unidades en cuidado facial), el sistema notifica al administrador para reorden quincenal/semanal.  Penalidad por Cancelación de Citas: Las citas pueden cancelarse gratis con 24 horas de anticipación. Cancelaciones con menos tiempo tienen reembolso de solo el 50%. Los servicios ya brindados no son reembolsables.  Fidelización (Groomer Credits): Por cada S/ 1 gastado, se otorga 1 punto. 100 créditos equivalen a S/ 5 de descuento en la siguiente compra. Hay bonos automáticos por cumpleaños (+100) y reseñas (+30).  Procesamiento de Pago Seguro: El frontend tokeniza los datos de tarjeta usando Culqi.js, enviando solo el token seguro al backend de Next.js, por lo que los datos jamás se guardan en la base de datos de Supabase (cumpliendo normativa PCI-DSS).  Roles y UsuariosCliente (Consumidor B2C): Perfil mobile-first. Valora la inmediatez; agenda turnos, añade productos al carrito, acumula Groomer Credits y gestiona membresías Elite.  Especialista / Barbero (Senior/Master): Brinda la prestación del servicio físico; el sistema optimiza sus "tiempos muertos" de forma automatizada.  Administrador (Líder del Negocio): Gestiona reclamos complejos (escalados nivel 3) , recibe alertas del dashboard de inventario , analiza métricas (CRM) e historial.  Funcionalidades Clave del DocumentoReserva Inteligente y Omnicanal 24/7: Algoritmo en tiempo real que previene cruces de horarios de las cabinas/barberos, posibilitando reservas sin intervención humana en cualquier momento.  E-Commerce Transaccional: Catálogo con visualización de variantes, un sistema de "Mini Carrito (Drawer Lateral)" que minimiza la carga cognitiva, y un checkout con cálculo dinámico de flete.  Suscripción Recurrente "Groomer Elite": Cobro automático mensual (S/ 39.00) que se integra con la base de datos para brindar 15% de descuento directo y prioridad en el calendario de forma nativa.  Integración de Boletas Electrónicas: A través de un Operador de Servicios Electrónicos (OSE) / SUNAT que emite PDFs automáticos al confirmar el pago en la simulación.  Chatbot Híbrido: Árbol de opciones vía WhatsApp (ManyChat) o web para consultas básicas que se escala a un humano si el cliente requiere cancelar o presentar quejas.

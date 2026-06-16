@@ -2,7 +2,7 @@
 // Tarjeta de servicio con badge Senior/Master — diseño mobile-first (RF-04)
 
 import type { Service } from "@/types/database";
-import { formatearSoles } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 
 interface ServiceCardProps {
   service: Service;
@@ -26,11 +26,10 @@ export default function ServiceCard({
           {service.nombre}
         </h3>
         <span
-          className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-            esMaster
+          className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${esMaster
               ? "bg-amber-100 text-amber-800"
               : "bg-stone-100 text-stone-600"
-          }`}
+            }`}
         >
           {service.variante_nivel}
         </span>
@@ -51,7 +50,7 @@ export default function ServiceCard({
       {/* Precio + acción */}
       <div className="mt-auto flex items-center justify-between pt-2 border-t border-stone-100">
         <span className="text-lg font-bold text-stone-900">
-          {formatearSoles(service.precio_base)}
+          {formatCurrency(service.precio_base)}
         </span>
 
         {modoSeleccion && onSeleccionar && (

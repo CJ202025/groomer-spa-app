@@ -4,7 +4,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { formatearFecha, formatearSoles, calcularPenalidad } from "@/lib/utils";
+import { formatDate, formatCurrency, calcularPenalidad } from "@/lib/utils";
 import type { EstadoCita } from "@/types/database";
 
 interface CitaConDetalle {
@@ -152,11 +152,11 @@ export default function MisCitasPage() {
 
             <div className="flex items-center justify-between text-sm">
               <span className="text-stone-500">
-                {formatearFecha(cita.fecha_hora_inicio)}
+                {formatDate(cita.fecha_hora_inicio)}
               </span>
               {cita.servicio && (
                 <span className="font-semibold text-stone-900">
-                  {formatearSoles(cita.servicio.precio_base)}
+                  {formatCurrency(cita.servicio.precio_base)}
                 </span>
               )}
             </div>
@@ -199,7 +199,7 @@ export default function MisCitasPage() {
               </p>
               <p>
                 <span className="font-medium">Fecha:</span>{" "}
-                {formatearFecha(citaACancelar.fecha_hora_inicio)}
+                {formatDate(citaACancelar.fecha_hora_inicio)}
               </p>
             </div>
 
@@ -213,7 +213,7 @@ export default function MisCitasPage() {
                   La cita es en menos de 24 horas. Se retendrá el 50% del valor:
                 </p>
                 <p className="text-base font-bold text-red-700">
-                  {formatearSoles(penalidad.monto)}
+                  {formatCurrency(penalidad.monto)}
                 </p>
               </div>
             ) : (

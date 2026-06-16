@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ServiceCard from "@/components/catalog/ServiceCard";
 import AppointmentCalendar from "@/components/booking/AppointmentCalendar";
-import { formatearSoles, formatearFecha } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import type { Service } from "@/types/database";
 
 type Paso = 1 | 2 | 3;
@@ -200,7 +200,7 @@ export default function ReservarPage() {
                   </p>
                 </div>
                 <span className="text-sm font-bold text-amber-700">
-                  {formatearSoles(servicioSeleccionado.precio_base)}
+                  {formatCurrency(servicioSeleccionado.precio_base)}
                 </span>
               </div>
             )}
@@ -252,13 +252,13 @@ export default function ReservarPage() {
                 <div className="flex justify-between">
                   <dt className="text-stone-500">Fecha y hora</dt>
                   <dd className="font-medium text-stone-900">
-                    {fechaHoraInicio ? formatearFecha(fechaHoraInicio) : "—"}
+                    {fechaHoraInicio ? formatDate(fechaHoraInicio) : "—"}
                   </dd>
                 </div>
                 <div className="flex justify-between border-t border-stone-100 pt-3">
                   <dt className="font-semibold text-stone-700">Total</dt>
                   <dd className="font-bold text-stone-900 text-base">
-                    {formatearSoles(servicioSeleccionado.precio_base)}
+                    {formatCurrency(servicioSeleccionado.precio_base)}
                   </dd>
                 </div>
               </dl>

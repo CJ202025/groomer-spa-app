@@ -5,7 +5,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { formatearFecha, formatearSoles } from "@/lib/utils";
+import { formatDate, formatCurrency } from "@/lib/utils";
 import type { EstadoCita, Rol } from "@/types/database";
 
 interface CitaGestion {
@@ -221,11 +221,11 @@ export default function GestionCitasPage() {
               {/* Fecha y precio */}
               <div className="flex items-center justify-between text-sm">
                 <span className="text-stone-500">
-                  {formatearFecha(cita.fecha_hora_inicio)}
+                  {formatDate(cita.fecha_hora_inicio)}
                 </span>
                 {cita.servicio && (
                   <span className="font-semibold text-stone-900">
-                    {formatearSoles(cita.servicio.precio_base)}
+                    {formatCurrency(cita.servicio.precio_base)}
                   </span>
                 )}
               </div>

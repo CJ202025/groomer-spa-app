@@ -1,0 +1,432 @@
+Plan de Desarrollo por Fases — Groomer SPA
+---
+Fase 1: Infraestructura Base y Esquema de Datos
+Contexto relevante para esta fase
+Informacion.txt: Estructura de carpetas Next.js completa, esquema de las 6 tablas (Users, Services, Products, Appointments, Orders, Order_Items) con todos sus campos, tipos y enums, referencias a Tailwind, mobile-first y `tailwind.config.ts`.
+Informe (Semana 1): Nombre del proyecto "Groomer SPA", stack confirmado (Next.js, Supabase, TypeScript, Tailwind).
+Objetivo
+Establecer el proyecto correctamente inicializado, con el esquema de base de datos creado en Supabase y la estructura de carpetas completa definida, de forma que todas las fases posteriores tengan una base sólida y no requieran refactorización de arquitectura.
+---
+Qué se construye
+1. Proyecto Next.js inicializado
+`package.json` / raíz del proyecto — Inicialización con Next.js 14+ (App Router), TypeScript, Tailwind CSS y ESLint.
+`tsconfig.json` — Configurar alias `@/` apuntando a `src/`.
+`tailwind.config.ts` — Configurar paleta de colores de marca, contraste accesible 4.5:1 y breakpoints mobile-first.
+CONTEXTO: Informacion.txt → `tailwind.config.ts` mencionado explícitamente con requisito de contraste 4.5:1; enfoque mobile-first definido en stack.
+2. Estructura de carpetas vacía
+Todos los directorios del árbol definido en Informacion.txt: `src/app/(auth)/`, `src/app/(shop)/`, `src/app/(booking)/`, `src/app/dashboard/`, `src/app/checkout/`, `src/app/admin/`, `src/app/api/webhooks/`, `src/app/api/stock/`, `src/app/api/reservas/`, `src/components/ui/`, `src/components/catalog/`, `src/components/booking/`, `src/components/checkout/`, `src/lib/supabase/`, `src/lib/culqi/`, `src/types/` — Crear toda la estructura con archivos placeholder para que fases posteriores no muevan archivos.
+CONTEXTO: Informacion.txt → Sección "Estructura de Carpetas Next.js (Full Stack, TypeScript)", árbol completo con descripción de cada directorio.
+3. Esquema de base de datos en Supabase
+CONFIGURACIÓN EXTERNA: Supabase Dashboard → SQL Editor — Crear las 6 tablas con sus columnas, tipos de datos, PKs, FKs y enums:
+`users`: id, nombre_completo, email, telefono, dni_ce, rol (enum: cliente/admin/barbero), groomer_credits, es_miembro_elite.
+`services`: id, sku, nombre, descripcion_corta, descripcion_larga, precio_base, duracion_minutos, variante_nivel (enum: Senior/Master).
+`products`: id, sku, nombre, descripcion, precio, stock_actual, stock_minimo, categoria, es_dropshipping.
+`appointments`: id, usuario_id (FK→users), servicio_id (FK→services), barbero_id (FK→users), fecha_hora_inicio, estado (enum: pendiente/confirmada/completada/cancelada).
+`orders`: id, usuario_id (FK→users), total, subtotal, costo_envio, metodo_envio (enum: Recojo/Delivery_Local/Nacional), estado_pedido (enum: confirmado/en_preparacion/completado), token_pago.
+`order_items`: id, pedido_id (FK→orders), producto_id (FK→products, nullable), servicio_id (FK→services, nullable), cantidad, subtotal.
+CONTEXTO: Informacion.txt → Sección completa del esquema de datos con todos los campos, tipos, enums y relaciones entre tablas.
+SOLO CUANDO SEA NECESARIO:
+CONFIGURACIÓN EXTERNA — Credenciales Supabase (SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY): necesarias para conectar el cliente Next.js al proyecto. Se obtienen desde Supabase Dashboard → Project Settings → API.
+4. Variables de entorno
+`.env.local` — Declarar `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+`.env.example` — Template sin valores reales para control de versiones.
+CONTEXTO: Informacion.txt → Referencias a Supabase como backend principal.
+5. Clientes Supabase
+`src/lib/supabase/client.ts` — Cliente para uso en componentes del navegador (`createBrowserClient`).
+`src/lib/supabase/server.ts` — Cliente para uso en Server Components y Route Handlers (`createServerClient`).
+CONTEXTO: Informacion.txt → "Cliente SSR/Browser de Supabase" en estructura de carpetas.
+SOLO CUANDO SEA NECESARIO:
+ARCHIVO — `.env.local` (definido en este paso): necesario antes de implementar los clientes para que lean las variables de entorno.
+6. Tipos TypeScript del esquema
+`src/types/database.ts` — Interfaces TypeScript para todas las tablas y sus enums: `User`, `Service`, `Product`, `Appointment`, `Order`, `OrderItem`, y los tipos de los enums (`Rol`, `VarianteNivel`, `EstadoCita`, `MetodoEnvio`, `EstadoPedido`).
+CONTEXTO: Informacion.txt → Esquema completo con tipos de columnas y todos los enums definidos.
+7. Middleware base
+`middleware.ts` — Configuración del matcher de rutas (`/admin/:path*`, `/dashboard/:path*`, `/checkout/:path*`). Sin lógica de rol aún, solo estructura del matcher.
+CONTEXTO: Informacion.txt → `middleware.ts` descrito como "Protección de rutas (Auth) con Supabase".
+---
+Qué NO se debe tocar
+No implementar lógica de autenticación ni componentes UI (Fase 2).
+No aplicar Row Level Security (RLS) (se define junto con la autenticación en Fase 2).
+No configurar servicios externos como Culqi ni proveedores de email (Fases posteriores).
+Entregables
+Proyecto Next.js corriendo localmente sin errores de compilación.
+Estructura de carpetas completa según Informacion.txt.
+Las 6 tablas creadas en Supabase con sus relaciones (sin RLS activo aún).
+Tipos TypeScript del esquema generados y sin errores.
+Variables de entorno configuradas.
+---
+Fase 2: Autenticación y Gestión de Usuarios (Módulo 1)
+Contexto relevante para esta fase
+Funcionalidades.txt: RF-01 (registro/login con email+contraseña y OAuth Google), RF-02 (perfil editable: nombre_completo, teléfono, DNI/CE; historial de citas y pedidos), RF-03 (roles: cliente, barbero, admin; restricción de vistas por rol).
+Informacion.txt: Tabla `users` (campos, rol enum); sección "Roles y Usuarios" (descripción de cliente, barbero, administrador); `middleware.ts` como protector de rutas.
+Objetivo
+Implementar el ciclo completo de autenticación y la gestión de perfil de usuario, incluyendo la asignación y control de roles y la protección de rutas, de modo que toda la aplicación tenga una capa de seguridad funcional antes de construir módulos de negocio.
+---
+Qué se construye
+1. Configuración de Auth en Supabase
+CONFIGURACIÓN EXTERNA: Supabase Dashboard → Authentication → Providers — Habilitar Email/Password y Google OAuth.
+CONFIGURACIÓN EXTERNA: Google Cloud Console → Credenciales OAuth 2.0 — Crear client_id y client_secret para el proveedor Google en Supabase.
+CONTEXTO: RF-01 (registro e inicio de sesión con email+contraseña y OAuth Google).
+SOLO CUANDO SEA NECESARIO:
+CONFIGURACIÓN EXTERNA — Google OAuth Client ID y Client Secret: obligatorias para habilitar el proveedor Google en Supabase Auth; se obtienen desde Google Cloud Console → APIs & Services → Credentials.
+2. Trigger de creación de perfil en Supabase
+CONFIGURACIÓN EXTERNA: Supabase Dashboard → SQL Editor — Crear función `handle_new_user()` y trigger `on_auth_user_created` que inserte automáticamente un registro en la tabla `users` cuando se crea un usuario en `auth.users`, con `rol = 'cliente'` y `groomer_credits = 0` por defecto.
+CONTEXTO: RF-03 (rol asignado al registrarse); Informacion.txt → tabla `users` con rol enum y groomer_credits como campos propios, diferenciados de `auth.users`.
+3. Row Level Security (RLS)
+CONFIGURACIÓN EXTERNA: Supabase Dashboard → SQL Editor — Definir políticas RLS para la tabla `users`:
+Un usuario autenticado puede leer y editar únicamente su propio registro.
+El rol `admin` puede leer todos los registros.
+CONTEXTO: RF-03 (restricción de vistas y acciones según rol); Informacion.txt → roles cliente, admin, barbero.
+4. Componentes UI base
+`src/components/ui/Input.tsx` — Input accesible con label y manejo de estado de error.
+`src/components/ui/Button.tsx` — Botón reutilizable con variantes (primario, secundario, destructivo).
+`src/components/ui/FormError.tsx` — Componente de mensaje de error de formulario.
+CONTEXTO: Informacion.txt → `src/components/ui/` descrito como "Botones, Modales, Inputs (Accesibles por teclado)"; tailwind.config.ts con contraste 4.5:1.
+5. Página de Registro
+`src/app/(auth)/registro/page.tsx` — Formulario con campos email, contraseña, nombre_completo; llamada a `supabase.auth.signUp`; botón de OAuth Google; redirección post-registro.
+CONTEXTO: RF-01; Informacion.txt → tabla `users` (campos nombre_completo, email).
+SOLO CUANDO SEA NECESARIO:
+ARCHIVO — `src/components/ui/` (definido en este paso): los componentes Input y Button son necesarios antes de construir el formulario.
+6. Página de Login
+`src/app/(auth)/login/page.tsx` — Formulario email/contraseña; botón Google OAuth; manejo de errores de credenciales incorrectas.
+CONTEXTO: RF-01.
+7. Route Handler de callback OAuth
+`src/app/(auth)/callback/route.ts` — Maneja el redirect de Google OAuth, intercambia el code por una sesión con Supabase y redirige al dashboard.
+CONTEXTO: RF-01 (OAuth Google); flujo PKCE de Supabase Auth.
+8. Middleware con lógica de protección y roles
+`middleware.ts` — Actualizar para: verificar sesión activa con Supabase; redirigir a `/login` si no autenticado en rutas protegidas; leer el campo `rol` del usuario y redirigir según corresponda (admin → `/admin`, cliente y barbero → `/dashboard`).
+CONTEXTO: RF-03 (clasificar usuarios en roles, restringir vistas y acciones); Informacion.txt → `middleware.ts` con "Protección de rutas (Auth) con Supabase"; roles y sus descripciones.
+9. Perfil de Usuario
+`src/app/dashboard/perfil/page.tsx` — Formulario editable para `nombre_completo`, `telefono`, `dni_ce`; carga los datos actuales del usuario desde Supabase; guarda cambios con PATCH.
+CONTEXTO: RF-02 (actualizar nombre_completo, teléfono, DNI/CE); tabla `users`.
+10. Dashboard Shell (estructura base)
+`src/app/dashboard/layout.tsx` — Layout con navegación mobile-first (barra inferior en mobile, lateral en desktop); ítems de navegación condicionales según `rol`.
+`src/app/dashboard/page.tsx` — Página inicial del dashboard con secciones placeholder para historial de citas y pedidos (se completan en Fases 3 y 5).
+CONTEXTO: RF-02 (historial de citas y pedidos accesible desde dashboard); RF-03 (restricción por rol); Informacion.txt → sección Roles y Usuarios (cliente valora inmediatez, perfil mobile-first).
+---
+Qué NO se debe tocar
+No implementar historial de citas ni pedidos (Fases 3 y 5).
+No construir vistas del panel admin (Fase 7).
+No agregar lógica de Groomer Credits ni membresía Elite al perfil (Fase 6).
+Entregables
+Registro e inicio de sesión funcionales (email+contraseña y Google OAuth).
+Trigger creando perfil en tabla `users` al registrarse.
+Perfil de usuario editable.
+Roles asignados y middleware protegiendo rutas por rol.
+RLS activo en tabla `users`.
+---
+Fase 3: Catálogo de Servicios y Reservas (Módulo 2)
+Contexto relevante para esta fase
+Funcionalidades.txt: RF-04 (catálogo de servicios: descripción, variante Senior/Master, precio base), RF-05 (seleccionar servicio, barbero, fecha y hora disponible), RF-06 (barbero bloqueado hasta que la cita sea marcada como "completada"), RF-07 (estados: pendiente, confirmada, completada, cancelada), RF-08 (penalidad del 50% si se cancela con menos de 24h).
+Informacion.txt: Tabla `services` (campos), tabla `appointments` (campos, lógica de estado y barbero ocupado), tabla `users` (rol barbero); sección "Reglas de Negocio" (penalidad por cancelación, reserva inteligente 24/7); "Especialista / Barbero" en Roles y Usuarios.
+Objetivo
+Implementar el flujo completo de reserva de citas: catálogo de servicios, algoritmo de disponibilidad de barberos en tiempo real, creación de cita en tres pasos, gestión de estados y lógica de penalización por cancelación.
+---
+Qué se construye
+1. Seed de servicios en Supabase
+CONFIGURACIÓN EXTERNA: Supabase Dashboard → Table Editor — Insertar registros de ejemplo en la tabla `services` con variantes Senior y Master.
+CONTEXTO: RF-04 (catálogo con descripción, variante, precio_base); Informacion.txt → tabla `services` (sku, nombre, variante_nivel enum: Senior/Master, precio_base).
+SOLO CUANDO SEA NECESARIO:
+CONFIGURACIÓN EXTERNA — Listado real de servicios del negocio (nombre, descripción corta, descripción larga, precio, variante Senior/Master, duración referencial): no está definido en los documentos entregados; necesario para poblar datos representativos en lugar de placeholders genéricos.
+2. Componente de tarjeta de servicio
+`src/components/catalog/ServiceCard.tsx` — Tarjeta que muestra nombre, descripcion_corta, variante_nivel con badge visual (Senior/Master), precio_base formateado en soles. Diseño mobile-first.
+CONTEXTO: RF-04 (catálogo con descripción, variante, precio base); Informacion.txt → campos de tabla `services`.
+3. Algoritmo de disponibilidad de barberos
+`src/app/api/reservas/route.ts` — Route Handler GET: recibe `fecha` como parámetro; consulta la tabla `appointments` filtrando por barbero_id donde `estado != 'completada'` y `estado != 'cancelada'` en esa fecha; retorna la lista de barberos (rol = 'barbero') con su disponibilidad. Un barbero sin citas activas ese día está disponible.
+CONTEXTO: RF-05 (elegir barbero disponible en la fecha); RF-06 (barbero bloqueado hasta estado 'completada'); Informacion.txt → tabla `appointments` (barbero_id, estado, lógica: "El barbero asignado se mantiene ocupado hasta que estado cambie a 'completada'"); sección "Reserva Inteligente Omnicanal 24/7".
+4. Componente de calendario y selector de barbero
+`src/components/booking/AppointmentCalendar.tsx` — Selector de fecha; al seleccionar fecha, consulta el API de disponibilidad y renderiza la lista de barberos disponibles; barberos ocupados se muestran deshabilitados visualmente.
+CONTEXTO: RF-05 (seleccionar barbero, fecha y hora); RF-06 (bloqueo visible en la selección).
+5. Flujo de creación de cita (multi-paso)
+`src/app/(booking)/reservar/page.tsx` — Página con tres pasos en secuencia: (1) selección de servicio del catálogo, (2) selección de barbero + fecha/hora disponible usando el componente de calendario, (3) resumen y confirmación. Al confirmar, llama al API para crear la cita.
+`src/app/api/reservas/route.ts` (mismo archivo, método POST) — Crear registro en tabla `appointments` con estado inicial `pendiente`.
+CONTEXTO: RF-05 (servicio + barbero + fecha/hora); RF-07 (estado inicial 'pendiente').
+6. Página de confirmación de cita
+`src/app/(booking)/confirmacion/page.tsx` — Muestra el resumen de la cita creada: servicio, barbero, fecha, hora y estado 'pendiente'.
+CONTEXTO: RF-05, RF-07.
+7. Route Handler de gestión de estado de cita
+`src/app/api/reservas/[id]/route.ts` — Route Handler PATCH: recibe el nuevo estado; valida que el solicitante tenga rol `barbero` o `admin` para cambios de estado (excepto cancelación, que el cliente también puede iniciar); actualiza el campo `estado` en la tabla `appointments`.
+CONTEXTO: RF-07 (admin o barbero cambian estado); RF-06 (disponibilidad del barbero se libera al marcar 'completada'); RF-03 (restricción por rol).
+8. Lógica de penalidad por cancelación
+`src/lib/utils.ts` — Agregar función `calcularPenalidad(fechaHoraInicio: Date, precioBase: number): { aplicaPenalidad: boolean, monto: number }`: si la diferencia entre ahora y `fechaHoraInicio` es menor a 24 horas, retorna 50% de `precioBase`; de lo contrario retorna 0.
+CONTEXTO: RF-08 (cancelación con menos de 24h = penalidad del 50% del valor); Informacion.txt → "Cancelaciones con menos tiempo tienen reembolso de solo el 50%".
+9. Vista de citas del cliente en Dashboard
+`src/app/dashboard/citas/page.tsx` — Listado de citas del usuario autenticado con estado actual; botón de cancelar que invoca la lógica de penalidad; indicación visual prominente del monto de penalidad cuando aplica antes de confirmar la cancelación.
+CONTEXTO: RF-02 (historial de citas en dashboard); RF-07, RF-08.
+10. Vista de gestión de citas para barbero y admin
+`src/app/dashboard/gestion-citas/page.tsx` — Para rol `barbero`: lista sus citas asignadas con selector de cambio de estado. Para rol `admin`: lista todas las citas con filtro por barbero y estado.
+CONTEXTO: RF-07 (admin o barbero cambian estado); RF-03 (vistas diferenciadas por rol); Informacion.txt → rol Especialista/Barbero y Administrador.
+SOLO CUANDO SEA NECESARIO:
+ARCHIVO — `src/app/dashboard/layout.tsx` (Fase 2): necesario para agregar el ítem de navegación "Gestión de citas" al layout del dashboard, condicionado al rol.
+---
+Qué NO se debe tocar
+No integrar Groomer Credits en citas (Fase 6).
+No implementar beneficios Elite ni prioridad visual en citas (Fase 6).
+No construir el panel de admin completo (Fase 7).
+No enviar notificaciones por correo (Fase 8).
+Entregables
+Catálogo de servicios visible con variantes Senior/Master.
+Flujo de reserva de cita funcional en tres pasos.
+Algoritmo de disponibilidad bloqueando barberos con citas activas.
+Estados de cita gestionables por rol.
+Penalidad calculada y mostrada correctamente al intentar cancelar.
+---
+Fase 4: E-Commerce, Catálogo de Productos y Carrito (Módulo 3)
+Contexto relevante para esta fase
+Funcionalidades.txt: RF-09 (catálogo B2C por categoría: SKU, imagen, descripción, precio), RF-10 (carrito: agregar, modificar cantidad, eliminar; drawer lateral en tiempo real), RF-11 (checkout: Recojo/Delivery_Local/Nacional, costo de envío dinámico), RF-12 (diferenciación físico vs dropshipping, solo visible para admin).
+Informacion.txt: Tabla `products` (campos, `es_dropshipping`, `stock_actual`, `stock_minimo`, `categoria`); tabla `orders` (`metodo_envio` enum, `total`, `subtotal`, `costo_envio`); sección "Gestión de Stock Híbrido"; "Mini Carrito (Drawer Lateral)".
+Objetivo
+Construir el módulo de e-commerce completo: catálogo de productos navegable por categoría, carrito de compras con drawer lateral persistente y flujo de checkout con cálculo dinámico de costo de envío.
+---
+Qué se construye
+1. Seed de productos en Supabase
+CONFIGURACIÓN EXTERNA: Supabase Dashboard → Table Editor — Insertar productos de ejemplo con categorías (Cuidado Facial, Cuidado de Barba), precios, stock inicial y flag `es_dropshipping`.
+CONTEXTO: RF-09; Informacion.txt → tabla `products` (campos, categorías de ejemplo mencionadas, `es_dropshipping`).
+SOLO CUANDO SEA NECESARIO:
+CONFIGURACIÓN EXTERNA — Listado real de productos del negocio (SKU, nombre, descripción, precio, categoría, stock inicial, flag dropshipping, imágenes): no está definido en los documentos; necesario para datos representativos.
+2. Componente de tarjeta de producto
+`src/components/catalog/ProductCard.tsx` — Tarjeta con imagen, nombre, categoría, precio formateado en soles, botón "Agregar al carrito". Diseño mobile-first.
+CONTEXTO: RF-09 (SKU, imagen, descripción, precio por categoría).
+3. Página de catálogo de productos
+`src/app/(shop)/catalogo/page.tsx` — Listado de productos agrupados por categoría; filtro por categoría en la parte superior; grid responsive.
+CONTEXTO: RF-09 (agrupado por categoría).
+4. Página de detalle de producto
+`src/app/(shop)/producto/[sku]/page.tsx` — Vista completa con imagen, nombre, descripción completa, precio y botón de agregar al carrito. La ruta usa el SKU como identificador.
+CONTEXTO: RF-09 (SKU como identificador en la ruta; descripción completa).
+5. Estado global del carrito
+`src/lib/cart-store.ts` — Gestión del estado del carrito mediante React Context o Zustand: funciones `addItem`, `removeItem`, `updateQuantity`, `clearCart`; persistido en `localStorage` para sobrevivir recargas.
+CONTEXTO: RF-10 (agregar, modificar cantidad, eliminar con cambios en tiempo real).
+6. Provider del carrito en layout raíz
+`src/app/layout.tsx` — Envolver el árbol de la aplicación con el CartProvider para que el estado del carrito esté disponible en todas las páginas.
+CONTEXTO: RF-10 (carrito accesible desde cualquier vista de la aplicación).
+7. Componente Drawer del carrito
+`src/components/checkout/CartDrawer.tsx` — Panel lateral deslizante: lista de ítems con imagen, nombre, cantidad editable (+ y -), subtotal por ítem, subtotal total, botón "Ir al checkout" y botón de cierre. Se abre desde un ícono en el header.
+CONTEXTO: RF-10 (drawer lateral, cambios en tiempo real); Informacion.txt → "Mini Carrito (Drawer Lateral) que minimiza la carga cognitiva".
+8. Ícono del carrito en header
+`src/components/ui/CartIcon.tsx` — Ícono con badge que muestra la cantidad de ítems en el carrito; al hacer clic abre el CartDrawer. Presente en el layout de todas las páginas.
+CONTEXTO: RF-10 (visualizar cambios en tiempo real; acceso rápido al carrito).
+9. Página de checkout con selección de envío
+`src/app/checkout/page.tsx` — Resumen de ítems del carrito; selector de modalidad de entrega (Recojo / Delivery_Local / Nacional); costo de envío recalculado dinámicamente al cambiar la modalidad; total mostrado en tiempo real.
+CONTEXTO: RF-11 (modalidades de entrega, recálculo dinámico del costo de envío); Informacion.txt → tabla `orders` (`metodo_envio` enum).
+SOLO CUANDO SEA NECESARIO:
+CONFIGURACIÓN EXTERNA — Costos de envío por modalidad (precio de Delivery_Local y Nacional en soles): no están definidos en los documentos; necesarios para el cálculo dinámico de RF-11.
+10. Función de cálculo de totales
+`src/lib/utils.ts` — Agregar función `calcularTotal(subtotal: number, costoEnvio: number, descuentos: number): number` que suma subtotal + costoEnvio y resta los descuentos.
+CONTEXTO: RF-14 (subtotal + costo envío - descuentos = total exacto); se reutilizará en Fase 5 (pago) y Fase 6 (descuentos Elite y créditos).
+11. Vista parcial de inventario en admin
+`src/app/admin/inventario/page.tsx` — Vista básica (se amplía en Fase 7) que lista productos diferenciando físico (es_dropshipping = false) de dropshipping (es_dropshipping = true). Solo accesible para rol admin.
+CONTEXTO: RF-12 (diferenciación físico/dropshipping visible solo para admin); Informacion.txt → tabla `products` (es_dropshipping), sección "Gestión de Stock Híbrido".
+---
+Qué NO se debe tocar
+No integrar Culqi ni procesar pago real (Fase 5).
+No aplicar descuentos de Groomer Credits ni membresía Elite (Fase 6).
+No implementar deducción automática de stock al confirmar pedido (Fase 7).
+No crear registros en la tabla `orders` aún (se completa en Fase 5 al integrar el pago).
+Entregables
+Catálogo de productos navegable con filtro por categoría.
+Carrito funcional con drawer lateral y cambios en tiempo real.
+Checkout con selector de modalidad de envío y total dinámico.
+Vista admin con diferenciación físico/dropshipping.
+---
+Fase 5: Pagos Simulados y Facturación (Módulo 4)
+Contexto relevante para esta fase
+Funcionalidades.txt: RF-13 (Culqi Sandbox: tokenización en frontend, almacenar token_pago, sin cobros reales), RF-14 (subtotal + costo envío - descuentos = total), RF-15 (webhook post-pago → simulación Boleta Electrónica en PDF vinculada al pedido).
+Informacion.txt: Tabla `orders` (`token_pago`, `estado_pedido`, `total`, `subtotal`, `costo_envio`); tabla `order_items`; sección "Procesamiento de Pago Seguro" (Culqi.js en frontend, token al backend, datos nunca en Supabase, PCI-DSS); sección `src/lib/culqi/` y `src/app/api/webhooks/` en estructura de carpetas; "Integración de Boletas Electrónicas" vía OSE/SUNAT.
+Objetivo
+Integrar la pasarela de pago Culqi en modo Sandbox, completar el flujo de checkout con creación de la orden en la base de datos y generar la simulación de boleta electrónica en PDF disparada por webhook.
+---
+Qué se construye
+1. Configuración de cuenta Culqi Sandbox
+CONFIGURACIÓN EXTERNA: Portal Culqi → Crear cuenta de pruebas; obtener llave pública y llave privada del entorno Sandbox.
+`.env.local` — Agregar `NEXT_PUBLIC_CULQI_PUBLIC_KEY` y `CULQI_SECRET_KEY`.
+CONTEXTO: RF-13 (entorno Sandbox de Culqi, sin cobros reales); Informacion.txt → `token_pago` en tabla `orders`; "Culqi en entorno Sandbox (pruebas)".
+SOLO CUANDO SEA NECESARIO:
+CONFIGURACIÓN EXTERNA — Credenciales Culqi Sandbox (llave pública y privada): obligatorias para la integración; se obtienen desde el portal de Culqi tras registrarse.
+2. Cliente Culqi para el frontend
+`src/lib/culqi/culqi-client.ts` — Wrapper que carga el script de `Culqi.js` en el navegador y expone una función para abrir el modal de pago nativo de Culqi con el monto y la moneda correspondientes.
+CONTEXTO: RF-13 (el frontend tokeniza los datos de tarjeta con Culqi.js; el token se envía al backend; los datos de tarjeta nunca llegan al servidor); Informacion.txt → "frontend tokeniza datos de tarjeta usando Culqi.js, enviando solo token seguro al backend, cumpliendo PCI-DSS".
+3. Integración de Culqi.js en el checkout
+`src/app/checkout/page.tsx` (actualización de Fase 4) — Agregar botón "Pagar"; al hacer clic, inicializa Culqi.js con el monto total y las llaves; al obtener el token de Culqi, enviarlo al Route Handler del backend junto con los datos del pedido.
+CONTEXTO: RF-13; RF-14 (monto calculado antes de tokenizar).
+SOLO CUANDO SEA NECESARIO:
+ARCHIVO — `src/lib/utils.ts` (Fase 4): función `calcularTotal` necesaria para calcular el monto que se envía a Culqi antes de tokenizar.
+4. Cliente Culqi para el backend
+`src/lib/culqi/culqi-server.ts` — Wrapper para llamadas a la API REST de Culqi desde el servidor usando la llave secreta; función `crearCargo(token, monto, moneda)` que simula la creación de un cargo en el entorno Sandbox.
+CONTEXTO: Informacion.txt → `src/lib/culqi/` descrito como "Simulación de SDK / llamadas API a Culqi".
+5. Route Handler de creación de orden
+`src/app/api/orders/route.ts` — Route Handler POST: recibe el token_pago de Culqi, los ítems del carrito y el metodo_envio; llama a `crearCargo` en modo Sandbox; crea el registro en la tabla `orders` con `estado_pedido = 'confirmado'` y guarda el `token_pago`; crea los registros correspondientes en `order_items`; retorna el id de la orden creada.
+CONTEXTO: RF-13 (almacenar token_pago en BD, sin datos de tarjeta); RF-14 (guardar subtotal, costo_envio, total calculados); Informacion.txt → tablas `orders` y `order_items` con sus campos.
+6. Route Handler del webhook de Culqi
+`src/app/api/webhooks/route.ts` — Route Handler POST: recibe el evento de pago confirmado de Culqi Sandbox; verifica la firma del webhook con la llave secreta; actualiza el estado de la orden correspondiente si aplica; dispara la función de generación de boleta.
+CONTEXTO: RF-15 (webhook post-pago dispara boleta electrónica); Informacion.txt → `src/app/api/webhooks/` descrito como "Recepción de webhooks de Culqi (pagos simulados)".
+7. Generación de Boleta Electrónica simulada
+`src/lib/facturacion.ts` — Función `generarBoleta(orderId)`: consulta la orden y sus ítems; genera un PDF con los datos del pedido (número de orden, cliente, ítems, total, fecha) simulando el formato de una boleta electrónica; guarda el PDF en Supabase Storage y vincula la URL al registro de la orden.
+CONTEXTO: RF-15 (simulación Boleta Electrónica PDF vía OSE/SUNAT, vinculada al pedido); Informacion.txt → "PDFs automáticos al confirmar el pago en la simulación".
+SOLO CUANDO SEA NECESARIO:
+CONFIGURACIÓN EXTERNA — Biblioteca de generación de PDF (ej. `@react-pdf/renderer` o `pdfkit`): no está especificada en los documentos; necesaria para crear el archivo PDF de la boleta simulada. Debe elegirse e instalarse antes de implementar esta función.
+CONFIGURACIÓN EXTERNA — Supabase Storage bucket: crear un bucket `boletas` en Supabase Dashboard → Storage para almacenar los PDFs generados y obtener URLs públicas.
+8. Página de confirmación de pedido
+`src/app/checkout/confirmacion/page.tsx` — Muestra número de orden, total pagado, estado `confirmado`, enlace de descarga a la boleta PDF; limpia el carrito al cargar.
+CONTEXTO: RF-15 (boleta enlazada al pedido); RF-13 (confirmación del pago simulado).
+9. Historial de pedidos en Dashboard
+`src/app/dashboard/pedidos/page.tsx` — Listado de pedidos del usuario autenticado: número de orden, fecha, total, estado y enlace a la boleta PDF.
+CONTEXTO: RF-02 (historial de pedidos en dashboard del usuario); RF-15 (boleta accesible desde el historial).
+---
+Qué NO se debe tocar
+No aplicar descuentos de Groomer Credits ni membresía Elite en el pago (Fase 6).
+No implementar deducción de stock (Fase 7).
+No enviar notificaciones de email por actualización de estado de pedido (Fase 8).
+Entregables
+Checkout completo con tokenización mediante Culqi Sandbox.
+Órdenes creadas en BD con `token_pago` almacenado (sin datos de tarjeta).
+Webhook funcional recibiendo confirmación de pago simulado.
+Boleta electrónica simulada en PDF vinculada a la orden y accesible desde el historial.
+---
+Fase 6: Fidelización Groomer Credits y Membresía Elite (Módulo 5)
+Contexto relevante para esta fase
+Funcionalidades.txt: RF-16 (1 crédito por cada S/1 gastado en pedido o cita completada), RF-17 (bonos automáticos: +100 cumpleaños, +30 reseña), RF-18 (canje en checkout: 100 puntos = S/5 de descuento), RF-19 (membresía Elite S/39/mes simulada, campo `es_miembro_elite`), RF-20 (Elite: 15% de descuento en carrito, identificación visual en citas para prioridad).
+Informacion.txt: Tabla `users` (`groomer_credits` int, `es_miembro_elite` boolean); sección "Fidelización (Groomer Credits)" con todas las reglas; sección "Suscripción Recurrente Groomer Elite".
+Objetivo
+Implementar el sistema completo de puntos Groomer Credits con acumulación automática, bonos por eventos y canje en checkout; y la membresía Elite con descuento automático del 15% y prioridad visual en citas.
+---
+Qué se construye
+1. Acumulación de créditos al completar una orden
+`src/app/api/orders/route.ts` (Fase 5, actualización) — Al confirmar la creación de una orden, calcular `Math.floor(total)` y sumar ese valor al campo `groomer_credits` del usuario en la tabla `users`.
+CONTEXTO: RF-16 (1 crédito por cada S/1 gastado en pedido completado); Informacion.txt → tabla `users` (`groomer_credits`), regla "Por cada S/1 gastado, se otorga 1 punto".
+SOLO CUANDO SEA NECESARIO:
+ARCHIVO — `src/app/api/orders/route.ts` (Fase 5): necesario modificar el Route Handler existente para añadir la suma de créditos al flujo de creación de orden.
+2. Acumulación de créditos al completar una cita
+`src/app/api/reservas/[id]/route.ts` (Fase 3, actualización) — Al cambiar el estado de una cita a `completada`, consultar el `precio_base` del servicio asociado, calcular `Math.floor(precio_base)` y sumar al `groomer_credits` del usuario.
+CONTEXTO: RF-16 (1 crédito por cada S/1 gastado en cita completada); Informacion.txt → tabla `services` (`precio_base`), tabla `appointments` (`servicio_id`).
+SOLO CUANDO SEA NECESARIO:
+ARCHIVO — `src/app/api/reservas/[id]/route.ts` (Fase 3): necesario modificar el Route Handler de cambio de estado para añadir la lógica de créditos al transicionar a 'completada'.
+3. Sistema de bonos automáticos
+`src/app/api/credits/bonuses/route.ts` — Función que otorga +30 créditos al usuario que acaba de registrar una reseña; se llama desde el endpoint de creación de reseña.
+CONFIGURACIÓN EXTERNA: Supabase Dashboard → Edge Functions o pg_cron — Configurar una tarea programada diaria que consulte usuarios cuya fecha de nacimiento coincida con el día actual y les sume +100 créditos.
+CONTEXTO: RF-17 (+100 puntos cumpleaños, +30 puntos por reseña); Informacion.txt → "bonos automáticos por cumpleaños (+100) y reseñas (+30)".
+SOLO CUANDO SEA NECESARIO:
+CONFIGURACIÓN EXTERNA — Campo `fecha_nacimiento` en tabla `users`: no está definido en el esquema de Informacion.txt pero es imprescindible para implementar el bono de cumpleaños de RF-17. Debe añadirse mediante una migración SQL en Supabase antes de implementar este punto.
+4. Canje de créditos en checkout
+`src/app/checkout/page.tsx` (Fase 4/5, actualización) — Mostrar saldo actual de créditos del usuario; selector para elegir cuántos bloques de 100 puntos aplicar (cada bloque = S/5 de descuento); recalcular el total dinámicamente al seleccionar.
+`src/app/api/orders/route.ts` (Fase 5, actualización) — Recibir `creditos_usados` en el cuerpo de la petición; validar que el usuario tenga saldo suficiente; descontar el equivalente en soles del total; restar `creditos_usados` del campo `groomer_credits` del usuario al confirmar la orden.
+CONTEXTO: RF-18 (100 puntos = S/5 en checkout, aplicable en bloques de 100); RF-14 (descuentos incluidos en el cálculo del total).
+5. Gestión de membresía Elite
+`src/app/dashboard/membresia/page.tsx` — Vista con estado actual de la membresía (activa/inactiva), lista de beneficios, botón "Activar / Renovar Groomer Elite" que dispara el pago simulado de S/39.
+`src/app/api/membresia/route.ts` — Route Handler POST: simula el cargo de S/39 usando Culqi Sandbox; actualiza `es_miembro_elite = true` en la tabla `users` del usuario.
+CONTEXTO: RF-19 (S/39/mes simulada, `es_miembro_elite` cambia a true); Informacion.txt → tabla `users` (`es_miembro_elite` boolean); "Suscripción Recurrente Groomer Elite S/39".
+6. Descuento Elite automático en el carrito
+`src/lib/cart-store.ts` (Fase 4, actualización) — En la función de cálculo del subtotal, consultar si `es_miembro_elite = true`; si es así, aplicar un 15% de descuento sobre el subtotal antes de retornarlo.
+`src/app/checkout/page.tsx` — Mostrar badge visual indicando "Descuento Elite 15% aplicado" cuando corresponda.
+CONTEXTO: RF-20 (15% de descuento automático en carrito para usuarios Elite); Informacion.txt → "15% de descuento directo y prioridad en el calendario de forma nativa".
+7. Identificación visual de usuario Elite en gestión de citas
+`src/app/dashboard/gestion-citas/page.tsx` (Fase 3, actualización) — Mostrar un badge o etiqueta visual en las citas de usuarios con `es_miembro_elite = true`; agregar indicación textual de "Prioridad Elite" para que barbero/admin la identifiquen fácilmente.
+CONTEXTO: RF-20 (identificar visualmente al usuario Elite en la gestión de citas para darle prioridad en la atención).
+8. Vista de Groomer Credits en Dashboard
+`src/app/dashboard/creditos/page.tsx` — Mostrar saldo actual de créditos, equivalencia en descuento (S/5 por cada 100), estado de membresía Elite y acceso rápido a la página de membresía.
+CONTEXTO: RF-02 (dashboard con Groomer Credits visibles); Informacion.txt → tabla `users` (`groomer_credits`).
+---
+Qué NO se debe tocar
+No modificar el panel de admin completo (Fase 7).
+No implementar notificaciones de email para acumulación de créditos (Fase 8).
+Entregables
+Créditos acumulados automáticamente al completar pedidos y citas.
+Bono de cumpleaños y bono por reseña configurados.
+Canje de créditos funcional en el checkout con recálculo del total.
+Membresía Elite activable con descuento del 15% aplicado automáticamente.
+Badge de prioridad Elite visible en la gestión de citas.
+---
+Fase 7: Panel de Administración (Módulo 6)
+Contexto relevante para esta fase
+Funcionalidades.txt: RF-21 (visualizar todos los pedidos, actualizar estado logístico: confirmado → en_preparacion → completado), RF-22 (al confirmar pedido, restar automáticamente `stock_actual` de productos físicos), RF-23 (alerta visual cuando `stock_actual <= stock_minimo`).
+Informacion.txt: Tabla `orders` (`estado_pedido` enum), tabla `products` (`stock_actual`, `stock_minimo`, `es_dropshipping`), tabla `order_items` (`cantidad`); sección `src/app/admin/` en estructura de carpetas; rol Administrador (alertas de inventario, gestión de reclamos); regla "Alertas Automáticas: cuando SKU alcanza Stock Mínimo".
+Objetivo
+Construir el panel de administración completo: gestión del ciclo de vida de pedidos, deducción automática de stock físico al confirmar un pedido y sistema de alertas visuales de stock mínimo.
+---
+Qué se construye
+1. Layout del panel admin
+`src/app/admin/layout.tsx` — Layout exclusivo para rol `admin` con navegación hacia las secciones: Pedidos, Inventario, Citas. Protegido por el middleware de Fase 2 para que solo el rol `admin` pueda acceder.
+CONTEXTO: RF-03 (restricción de acceso total al panel por rol admin); Informacion.txt → `src/app/admin/` en estructura de carpetas.
+2. Gestión de pedidos (backoffice)
+`src/app/admin/pedidos/page.tsx` — Tabla con todos los pedidos del sistema: usuario, fecha, total, método de envío, estado actual; selector de cambio de estado (confirmado → en_preparacion → completado); filtros por estado; paginación.
+CONTEXTO: RF-21 (visualizar todos los pedidos y actualizar estado logístico); Informacion.txt → tabla `orders` (`estado_pedido` enum: confirmado, en_preparacion, completado).
+3. Route Handler de actualización de estado de pedido con deducción de stock
+`src/app/api/orders/[id]/route.ts` — Route Handler PATCH: recibe el nuevo `estado_pedido`; si el nuevo estado es `confirmado`, consulta los `order_items` del pedido, filtra los que tienen `producto_id` con `es_dropshipping = false`, y resta la `cantidad` de cada ítem del `stock_actual` del producto correspondiente en la tabla `products`; no modifica el stock de productos con `es_dropshipping = true`.
+CONTEXTO: RF-21 (actualización de estado logístico); RF-22 (deducción automática de `stock_actual` de físicos al confirmarse); Informacion.txt → tabla `products` (`stock_actual`, `es_dropshipping`), tabla `order_items` (`cantidad`, `producto_id`); regla "stock propio físico para entregas del mismo día; baja rotación por dropshipping".
+4. Route Handler de alertas de stock mínimo
+`src/app/api/stock/route.ts` — Route Handler GET: consulta la tabla `products` y retorna todos los productos donde `stock_actual <= stock_minimo`, con sus datos (SKU, nombre, categoria, stock_actual, stock_minimo).
+CONTEXTO: RF-23 (generar alerta cuando `stock_actual <= stock_minimo`); Informacion.txt → `src/app/api/stock/` descrito como "Alertas y sincronización de inventario".
+5. Vista de inventario con alertas visuales
+`src/app/admin/inventario/page.tsx` (ampliar vista de Fase 4) — Listado completo de productos con diferenciación visual (físico vs dropshipping); banner o badge de alerta rojo para productos en stock crítico (`stock_actual <= stock_minimo`); consulta el endpoint de stock en el montaje del componente.
+CONTEXTO: RF-23 (alerta visual en panel de admin para solicitar reabastecimiento); RF-12 (diferenciación físico/dropshipping solo para admin); Informacion.txt → regla "cuando SKU alcanza Stock Mínimo, notifica al administrador para reorden quincenal/semanal".
+6. Edición manual de stock
+`src/app/admin/inventario/page.tsx` (mismo componente) — Formulario inline o modal para actualizar manualmente `stock_actual` (reabastecimiento) y `stock_minimo` de cada producto físico.
+CONTEXTO: RF-23 (solicitar reabastecimiento desde el panel); Informacion.txt → tabla `products` (`stock_actual`, `stock_minimo`).
+7. Vista completa de citas en admin
+`src/app/admin/citas/page.tsx` — Listado de todas las citas del sistema con filtros por barbero, estado y fecha; permite cambiar el estado de cualquier cita; muestra badge Elite en citas de usuarios con `es_miembro_elite = true`.
+CONTEXTO: RF-07 (admin puede cambiar cualquier estado de cita); RF-20 (identificación visual Elite); Informacion.txt → rol Administrador.
+SOLO CUANDO SEA NECESARIO:
+ARCHIVO — `src/components/booking/` (Fase 3): reutilizar componentes de tarjeta de cita ya construidos para no duplicar lógica de visualización.
+---
+Qué NO se debe tocar
+No modificar el flujo de pago de Fase 5.
+No implementar notificaciones de email de actualización de pedido (Fase 8).
+No construir métricas ni CRM (fuera del alcance de los RF definidos).
+Entregables
+Panel admin accesible exclusivamente para rol admin.
+Gestión completa del ciclo de vida de pedidos (3 estados).
+Stock deducido automáticamente al confirmar un pedido (solo productos físicos).
+Alertas visuales de stock mínimo en el panel de inventario.
+Vista completa de citas para administración con indicador Elite.
+---
+Fase 8: Soporte, Chatbot y Notificaciones (Módulo 7)
+Contexto relevante para esta fase
+Funcionalidades.txt: RF-24 (widget de chatbot con árbol de decisiones para consultas frecuentes), RF-25 (derivación a humano en casos de reclamo o cancelación compleja), RF-26 (correos transaccionales: registro, confirmación de cita, actualización de estado de pedido).
+Informacion.txt: Sección "Chatbot Híbrido" (árbol de opciones web/WhatsApp, escalado a humano para cancelaciones y quejas); rol Administrador (gestiona reclamos complejos escalados nivel 3).
+Objetivo
+Implementar el sistema de notificaciones por correo para los tres eventos clave, el widget de chatbot con árbol de decisiones y la derivación a atención humana para casos que lo requieran.
+---
+Qué se construye
+1. Proveedor de email transaccional
+CONFIGURACIÓN EXTERNA: Resend (recomendado por integración nativa con Next.js) o SendGrid → Crear cuenta, obtener API key, verificar el dominio de envío del negocio.
+`.env.local` — Agregar `EMAIL_API_KEY` y `EMAIL_FROM_ADDRESS`.
+CONTEXTO: RF-26 (correos transaccionales automáticos en tres eventos).
+SOLO CUANDO SEA NECESARIO:
+CONFIGURACIÓN EXTERNA — API Key del proveedor de email y dominio verificado: obligatorios para el envío; el proveedor específico no está definido en los documentos y debe elegirse antes de implementar esta fase.
+2. Función de envío y templates de correo
+`src/lib/email/sender.ts` — Función genérica `sendEmail(to, subject, html)` que utiliza el proveedor configurado.
+`src/lib/email/templates.ts` — Funciones que generan el HTML de cada email: `templateBienvenida(nombre)`, `templateConfirmacionCita(cita)`, `templateActualizacionPedido(pedido, nuevoEstado)`.
+CONTEXTO: RF-26 (tres eventos: registro, confirmación de cita, actualización de estado de pedido).
+3. Integración de emails en eventos existentes
+`src/app/(auth)/callback/route.ts` (Fase 2, actualización) — Llamar a `sendEmail` con `templateBienvenida` al completar el registro de un nuevo usuario.
+`src/app/api/reservas/[id]/route.ts` (Fase 3, actualización) — Llamar a `sendEmail` con `templateConfirmacionCita` cuando el estado de la cita cambie a `confirmada`.
+`src/app/api/orders/[id]/route.ts` (Fase 7, actualización) — Llamar a `sendEmail` con `templateActualizacionPedido` cada vez que el `estado_pedido` de una orden sea actualizado.
+CONTEXTO: RF-26; Informacion.txt → "enviar correos cuando usuario se registra, cuando confirma cita, cuando se actualiza estado de pedido".
+SOLO CUANDO SEA NECESARIO:
+ARCHIVO — `src/lib/email/sender.ts` (definido en este paso): debe estar implementado antes de modificar los Route Handlers de fases anteriores.
+4. Componente widget de chatbot
+`src/components/ui/ChatbotWidget.tsx` — Botón flotante en la esquina inferior derecha visible en toda la app; al hacer clic despliega un panel de chat con árbol de decisiones inicial: (1) Consultar servicios y precios, (2) Estado de mi pedido, (3) Cancelar cita, (4) Reclamo u otro problema. Las opciones 1 y 2 responden automáticamente con información predefinida; las opciones 3 y 4 escalan al humano (RF-25).
+CONTEXTO: RF-24 (widget con árbol de decisiones para consultas frecuentes); Informacion.txt → "árbol de opciones vía WhatsApp/ManyChat o web para consultas básicas".
+5. Lógica de derivación a humano
+`src/components/ui/ChatbotWidget.tsx` (mismo componente) — Cuando el usuario selecciona las opciones de cancelación compleja o reclamo, mostrar un mensaje informando que será atendido por un agente; mostrar botón de contacto directo (WhatsApp o formulario de soporte).
+`src/app/api/support/route.ts` — Route Handler POST: recibe el contexto de la conversación escalada (usuario_id, motivo, mensaje); registra el escalado y notifica al administrador mediante email usando `sendEmail`.
+CONTEXTO: RF-25 (derivación a humano para reclamo o cancelación compleja); Informacion.txt → "escala a humano si cliente requiere cancelar o presentar quejas"; rol Administrador gestiona reclamos complejos.
+SOLO CUANDO SEA NECESARIO:
+CONFIGURACIÓN EXTERNA — Número de WhatsApp del negocio o URL de integración con ManyChat: no está definido en los documentos; necesario para el enlace de derivación directa en RF-25.
+6. Integración del chatbot en layout global
+`src/app/layout.tsx` — Agregar el componente `ChatbotWidget` al layout raíz para que sea visible en todas las páginas de la aplicación.
+CONTEXTO: RF-24 (widget disponible en toda la plataforma).
+---
+Qué NO se debe tocar
+No modificar la lógica de negocio de fases anteriores más allá de los tres puntos de integración de email definidos.
+No construir un historial de conversaciones de soporte ni un CRM (fuera del alcance de los RF).
+Entregables
+Correos transaccionales enviados en los tres eventos: registro, confirmación de cita y actualización de pedido.
+Widget de chatbot visible en toda la aplicación con árbol de decisiones funcional.
+Derivación a humano operativa para reclamos y cancelaciones complejas.
+Escalado de soporte notificado al administrador por email.
+
+NOTAS A TENER EN CUENTA POR ACTUALIZACIONES:
+middleware.ts fue reemplazado por proxy.ts (función proxy en lugar de middleware)
+cookies() es asíncrona — debe usarse con await.
+El comando de creación ahora incluye App Router, TypeScript y Tailwind por defecto.
+Las nuevas llaves son NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (reemplaza a ANON_KEY)

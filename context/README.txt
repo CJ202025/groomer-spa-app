@@ -1,0 +1,2 @@
+La carpeta "Context" es meramente para ortorgar, como su mismo nombre dice, contexto del proyecto, tanto sus fases de desarrollos como progresos pendientes.
+Normalmente se usa para dar contexto de lo pendiente a agentes con modelos de IA, para que estos sepan que falta por implementar.

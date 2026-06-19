@@ -234,30 +234,35 @@ Funcionalidades.txt: RF-13 (Culqi Sandbox: tokenización en frontend, almacenar 
 Informacion.txt: Tabla `orders` (`token_pago`, `estado_pedido`, `total`, `subtotal`, `costo_envio`); tabla `order_items`; sección "Procesamiento de Pago Seguro" (Culqi.js en frontend, token al backend, datos nunca en Supabase, PCI-DSS); sección `src/lib/culqi/` y `src/app/api/webhooks/` en estructura de carpetas; "Integración de Boletas Electrónicas" vía OSE/SUNAT.
 Objetivo
 Integrar la pasarela de pago Culqi en modo Sandbox, completar el flujo de checkout con creación de la orden en la base de datos y generar la simulación de boleta electrónica en PDF disparada por webhook.
+
+[ACTUALIZACIÓN DE IMPLEMENTACIÓN]:
+Por requerimiento del proyecto, la integración de Culqi se ha implementado mediante una SIMULACIÓN 100% LOCAL (mock).
+- No se utiliza la API oficial ni el SDK externo de Culqi.
+- El frontend simula la tokenización (generando UUIDs locales según la tarjeta ingresada en un modal propio).
+- El backend simula el cobro verificando tarjetas de prueba predefinidas y la firma de un "webhook interno".
+- La boleta electrónica se simula completamente offline usando `jsPDF` y se sube al bucket de Supabase Storage usando `SUPABASE_SERVICE_ROLE_KEY` (evitando bloqueos de RLS).
 ---
 Qué se construye
-1. Configuración de cuenta Culqi Sandbox
-CONFIGURACIÓN EXTERNA: Portal Culqi → Crear cuenta de pruebas; obtener llave pública y llave privada del entorno Sandbox.
-`.env.local` — Agregar `NEXT_PUBLIC_CULQI_PUBLIC_KEY` y `CULQI_SECRET_KEY`.
-CONTEXTO: RF-13 (entorno Sandbox de Culqi, sin cobros reales); Informacion.txt → `token_pago` en tabla `orders`; "Culqi en entorno Sandbox (pruebas)".
-SOLO CUANDO SEA NECESARIO:
-CONFIGURACIÓN EXTERNA — Credenciales Culqi Sandbox (llave pública y privada): obligatorias para la integración; se obtienen desde el portal de Culqi tras registrarse.
-2. Cliente Culqi para el frontend
-`src/lib/culqi/culqi-client.ts` — Wrapper que carga el script de `Culqi.js` en el navegador y expone una función para abrir el modal de pago nativo de Culqi con el monto y la moneda correspondientes.
-CONTEXTO: RF-13 (el frontend tokeniza los datos de tarjeta con Culqi.js; el token se envía al backend; los datos de tarjeta nunca llegan al servidor); Informacion.txt → "frontend tokeniza datos de tarjeta usando Culqi.js, enviando solo token seguro al backend, cumpliendo PCI-DSS".
-3. Integración de Culqi.js en el checkout
-`src/app/checkout/page.tsx` (actualización de Fase 4) — Agregar botón "Pagar"; al hacer clic, inicializa Culqi.js con el monto total y las llaves; al obtener el token de Culqi, enviarlo al Route Handler del backend junto con los datos del pedido.
+1. Configuración de entorno local para pagos
+`.env.local` — NO se requieren llaves reales de Culqi, todo opera mediante simulación local.
+CONTEXTO: RF-13 (entorno simulado, sin cobros reales); Informacion.txt → `token_pago` en tabla `orders`.
+2. Cliente de Pagos simulado para el frontend
+`src/lib/culqi/culqi-client.ts` — Generador de tokens local y validación de tarjetas de prueba.
+`src/components/checkout/ModalPago.tsx` — Modal UI propio con atajos de tarjetas simuladas (reemplaza al modal nativo de Culqi).
+CONTEXTO: RF-13 (el frontend tokeniza los datos localmente sin enviarlos al servidor).
+3. Integración del modal de pago en el checkout
+`src/app/checkout/page.tsx` (actualización de Fase 4) — Agregar botón "Pagar"; al hacer clic, abre el ModalPago simulado; al obtener el token local, lo envía al Route Handler del backend junto con los datos del pedido.
 CONTEXTO: RF-13; RF-14 (monto calculado antes de tokenizar).
 SOLO CUANDO SEA NECESARIO:
 ARCHIVO — `src/lib/utils.ts` (Fase 4): función `calcularTotal` necesaria para calcular el monto que se envía a Culqi antes de tokenizar.
-4. Cliente Culqi para el backend
-`src/lib/culqi/culqi-server.ts` — Wrapper para llamadas a la API REST de Culqi desde el servidor usando la llave secreta; función `crearCargo(token, monto, moneda)` que simula la creación de un cargo en el entorno Sandbox.
+4. Procesador de pagos simulado para el backend
+`src/lib/culqi/culqi-server.ts` — Función `crearCargo(token, monto, moneda)` que evalúa el prefijo del token (ej. `tkn_aprobado_`) para aprobar o rechazar la transacción sin conectarse a la API REST de Culqi.
 CONTEXTO: Informacion.txt → `src/lib/culqi/` descrito como "Simulación de SDK / llamadas API a Culqi".
 5. Route Handler de creación de orden
 `src/app/api/orders/route.ts` — Route Handler POST: recibe el token_pago de Culqi, los ítems del carrito y el metodo_envio; llama a `crearCargo` en modo Sandbox; crea el registro en la tabla `orders` con `estado_pedido = 'confirmado'` y guarda el `token_pago`; crea los registros correspondientes en `order_items`; retorna el id de la orden creada.
 CONTEXTO: RF-13 (almacenar token_pago en BD, sin datos de tarjeta); RF-14 (guardar subtotal, costo_envio, total calculados); Informacion.txt → tablas `orders` y `order_items` con sus campos.
-6. Route Handler del webhook de Culqi
-`src/app/api/webhooks/route.ts` — Route Handler POST: recibe el evento de pago confirmado de Culqi Sandbox; verifica la firma del webhook con la llave secreta; actualiza el estado de la orden correspondiente si aplica; dispara la función de generación de boleta.
+6. Route Handler del webhook interno de pagos
+`src/app/api/webhooks/route.ts` — Route Handler POST: recibe el evento `charge.succeeded` generado por el backend simulado; verifica una firma interna estática (`simulacion_interna`); dispara la función de generación de boleta usando Service Role Key.
 CONTEXTO: RF-15 (webhook post-pago dispara boleta electrónica); Informacion.txt → `src/app/api/webhooks/` descrito como "Recepción de webhooks de Culqi (pagos simulados)".
 7. Generación de Boleta Electrónica simulada
 `src/lib/facturacion.ts` — Función `generarBoleta(orderId)`: consulta la orden y sus ítems; genera un PDF con los datos del pedido (número de orden, cliente, ítems, total, fecha) simulando el formato de una boleta electrónica; guarda el PDF en Supabase Storage y vincula la URL al registro de la orden.
@@ -277,7 +282,7 @@ No aplicar descuentos de Groomer Credits ni membresía Elite en el pago (Fase 6)
 No implementar deducción de stock (Fase 7).
 No enviar notificaciones de email por actualización de estado de pedido (Fase 8).
 Entregables
-Checkout completo con tokenización mediante Culqi Sandbox.
+Checkout completo con tokenización simulada localmente (Modal propio).
 Órdenes creadas en BD con `token_pago` almacenado (sin datos de tarjeta).
 Webhook funcional recibiendo confirmación de pago simulado.
 Boleta electrónica simulada en PDF vinculada a la orden y accesible desde el historial.
@@ -311,8 +316,8 @@ CONFIGURACIÓN EXTERNA — Campo `fecha_nacimiento` en tabla `users`: no está d
 `src/app/api/orders/route.ts` (Fase 5, actualización) — Recibir `creditos_usados` en el cuerpo de la petición; validar que el usuario tenga saldo suficiente; descontar el equivalente en soles del total; restar `creditos_usados` del campo `groomer_credits` del usuario al confirmar la orden.
 CONTEXTO: RF-18 (100 puntos = S/5 en checkout, aplicable en bloques de 100); RF-14 (descuentos incluidos en el cálculo del total).
 5. Gestión de membresía Elite
-`src/app/dashboard/membresia/page.tsx` — Vista con estado actual de la membresía (activa/inactiva), lista de beneficios, botón "Activar / Renovar Groomer Elite" que dispara el pago simulado de S/39.
-`src/app/api/membresia/route.ts` — Route Handler POST: simula el cargo de S/39 usando Culqi Sandbox; actualiza `es_miembro_elite = true` en la tabla `users` del usuario.
+`src/app/dashboard/membresia/page.tsx` — Vista con estado actual de la membresía (activa/inactiva), lista de beneficios, botón "Activar / Renovar Groomer Elite" que dispara el ModalPago simulado por S/39.
+`src/app/api/membresia/route.ts` — Route Handler POST: procesa el cargo de S/39 usando el simulador de backend (`culqi-server.ts`); actualiza `es_miembro_elite = true` en la tabla `users` del usuario.
 CONTEXTO: RF-19 (S/39/mes simulada, `es_miembro_elite` cambia a true); Informacion.txt → tabla `users` (`es_miembro_elite` boolean); "Suscripción Recurrente Groomer Elite S/39".
 6. Descuento Elite automático en el carrito
 `src/lib/cart-store.ts` (Fase 4, actualización) — En la función de cálculo del subtotal, consultar si `es_miembro_elite = true`; si es así, aplicar un 15% de descuento sobre el subtotal antes de retornarlo.

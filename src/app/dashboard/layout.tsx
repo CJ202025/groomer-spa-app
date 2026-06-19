@@ -71,6 +71,23 @@ const ScissorsIcon = () => (
     <line x1="8.12" y1="8.12" x2="12" y2="12" />
   </svg>
 );
+// MODIFICACIÓN FASE 5 — inicio
+const ShoppingBagIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    width={22}
+    height={22}
+    aria-hidden="true"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 10a4 4 0 01-8 0" />
+  </svg>
+);
+// MODIFICACIÓN FASE 5 — fin
 
 interface NavItem {
   href: string;
@@ -112,6 +129,14 @@ const navItems: NavItem[] = [
     roles: ["admin"],
   },
   // MODIFICACIÓN FASE 3 — fin
+  // MODIFICACIÓN FASE 5 — inicio
+  {
+    href: "/dashboard/pedidos",
+    label: "Mis pedidos",
+    icon: <ShoppingBagIcon />,
+    roles: ["cliente"],
+  },
+  // MODIFICACIÓN FASE 5 — fin
   {
     href: "/dashboard/perfil",
     label: "Perfil",

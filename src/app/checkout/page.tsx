@@ -1,5 +1,5 @@
 // src/app/checkout/page.tsx
-// Checkout con selección de envío y total dinámico — RF-11, RF-14
+// Checkout con selección de envío, total dinámico e integración de pago simulado — RF-11, RF-13, RF-14
 
 "use client";
 
@@ -12,6 +12,7 @@ import {
   Truck,
   Package,
   ShoppingBag,
+  AlertCircle,
 } from "lucide-react";
 import { useCartStore } from "@/lib/cart-store";
 import {
@@ -20,6 +21,11 @@ import {
   formatCurrency,
 } from "@/lib/utils";
 import type { MetodoEnvio } from "@/types/database";
+
+// MODIFICACIÓN FASE 5 — inicio
+import { ModalPago } from "@/components/checkout/ModalPago";
+import type { TokenCulqi } from "@/lib/culqi/culqi-client";
+// MODIFICACIÓN FASE 5 — fin
 
 // ── Opciones de envío ─────────────────────────────────────────────────────────
 
@@ -56,6 +62,12 @@ export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCartStore();
   const [metodoEnvio, setMetodoEnvio] = useState<MetodoEnvio>("Recojo");
 
+  // MODIFICACIÓN FASE 5 — inicio
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [procesandoPago, setProcesandoPago] = useState(false);
+  const [errorPago, setErrorPago] = useState<string | null>(null);
+  // MODIFICACIÓN FASE 5 — fin
+
   const costoEnvio = COSTOS_ENVIO[metodoEnvio];
   const sub = subtotal();
   const total = calcularTotal(sub, costoEnvio);
@@ -75,6 +87,52 @@ export default function CheckoutPage() {
       </main>
     );
   }
+
+  // MODIFICACIÓN FASE 5 — inicio
+  // Manejar el token recibido del modal de pago
+  const handleToken = async (token: TokenCulqi) => {
+    setModalAbierto(false);
+    setProcesandoPago(true);
+    setErrorPago(null);
+
+    try {
+      const payload = {
+        token_pago: token.id,
+        email: token.email,
+        items: items.map((item) => ({
+          productId: item.product.id,
+          cantidad: item.cantidad,
+          precio: item.product.precio,
+        })),
+        metodo_envio: metodoEnvio,
+        subtotal: sub,
+        costo_envio: costoEnvio,
+        total: total,
+      };
+
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorPago(data.error ?? "Error al procesar el pago. Intenta nuevamente.");
+        return;
+      }
+
+      // Limpiar carrito y redirigir a la confirmación
+      clearCart();
+      router.push(`/checkout/confirmacion?orderId=${data.orderId}`);
+    } catch {
+      setErrorPago("Error de conexión. Por favor intenta nuevamente.");
+    } finally {
+      setProcesandoPago(false);
+    }
+  };
+  // MODIFICACIÓN FASE 5 — fin
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -193,17 +251,54 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          {/* Nota: el botón de pago se integrará en Fase 5 con Culqi */}
-          <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-xs text-amber-700">
-            <strong>Fase 5:</strong> Aquí se integrará el botón de pago con Culqi Sandbox.
+          {/* MODIFICACIÓN FASE 5 — inicio */}
+
+          {/* Error de pago */}
+          {errorPago && (
+            <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <p className="text-sm text-red-700">{errorPago}</p>
+            </div>
+          )}
+
+          {/* Badge de sandbox */}
+          <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-center gap-2 text-xs text-indigo-700">
+            <span className="text-base">🔒</span>
+            <span>
+              <strong>Entorno Sandbox:</strong> Usa las tarjetas de prueba del modal. Sin cobros reales.
+            </span>
           </div>
 
+          {/* Botón de pago activo */}
           <button
-            disabled
-            className="w-full py-4 bg-indigo-600 text-white font-semibold rounded-2xl opacity-50 cursor-not-allowed text-sm"
+            onClick={() => setModalAbierto(true)}
+            disabled={procesandoPago}
+            className="w-full py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Proceder al pago — disponible en Fase 5
+            {procesandoPago ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Procesando pago...
+              </>
+            ) : (
+              <>🔒 Pagar {formatCurrency(total)}</>
+            )}
           </button>
+
+          {/* Modal de pago simulado */}
+          {modalAbierto && (
+            <ModalPago
+              monto={total}
+              emailCliente=""
+              onToken={handleToken}
+              onCerrar={() => setModalAbierto(false)}
+            />
+          )}
+
+          {/* MODIFICACIÓN FASE 5 — fin */}
         </div>
       </div>
     </main>

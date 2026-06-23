@@ -1,0 +1,34 @@
+[gestion-citas] 2026-06-22T18:05:39.373Z - Rol del usuario: barbero, ID: c00582e2-e86c-4482-931c-228ca1fa1cdc
+[gestion-citas] 2026-06-22T18:05:39.535Z - Se encontraron 9 citas.
+[gestion-citas] 2026-06-22T18:05:39.537Z - Primera cita raw: {"id":"dbfad265-e35b-4b28-99b0-5bfb6d518bc9","fecha_hora_inicio":"2026-06-28T15:30:00+00:00","estado":"completada","services":{"nombre":"Corte Premium","precio_base":60,"variante_nivel":"Master"},"cliente":null,"barbero":{"id":"c00582e2-e86c-4482-931c-228ca1fa1cdc","email":"carlosjuarezgarrido13@gmail.com","nombre_completo":"Carlos Mendoza"}}
+[gestion-citas] 2026-06-22T18:05:58.562Z - Rol del usuario: barbero, ID: c00582e2-e86c-4482-931c-228ca1fa1cdc
+[gestion-citas] 2026-06-22T18:05:58.776Z - Se encontraron 9 citas.
+[gestion-citas] 2026-06-22T18:05:58.779Z - Primera cita raw: {"id":"dbfad265-e35b-4b28-99b0-5bfb6d518bc9","fecha_hora_inicio":"2026-06-28T15:30:00+00:00","estado":"completada","services":{"nombre":"Corte Premium","precio_base":60,"variante_nivel":"Master"},"cliente":null,"barbero":{"id":"c00582e2-e86c-4482-931c-228ca1fa1cdc","email":"carlosjuarezgarrido13@gmail.com","nombre_completo":"Carlos Mendoza"}}
+[gestion-citas] 2026-06-22T18:06:41.988Z - Rol del usuario: barbero, ID: c00582e2-e86c-4482-931c-228ca1fa1cdc
+[gestion-citas] 2026-06-22T18:06:42.194Z - Se encontraron 10 citas.
+[gestion-citas] 2026-06-22T18:06:42.197Z - Primera cita raw: {"id":"3144c07d-af10-436c-b0ac-c96e9875090b","fecha_hora_inicio":"2026-06-29T16:30:00+00:00","estado":"pendiente","services":{"nombre":"Corte Clásico","precio_base":35,"variante_nivel":"Senior"},"cliente":null,"barbero":{"id":"c00582e2-e86c-4482-931c-228ca1fa1cdc","email":"carlosjuarezgarrido13@gmail.com","nombre_completo":"Carlos Mendoza"}}
+[gestion-citas] 2026-06-22T18:06:49.970Z - Rol del usuario: barbero, ID: c00582e2-e86c-4482-931c-228ca1fa1cdc
+[gestion-citas] 2026-06-22T18:06:50.154Z - Se encontraron 10 citas.
+[gestion-citas] 2026-06-22T18:06:50.156Z - Primera cita raw: {"id":"3144c07d-af10-436c-b0ac-c96e9875090b","fecha_hora_inicio":"2026-06-29T16:30:00+00:00","estado":"confirmada","services":{"nombre":"Corte Clásico","precio_base":35,"variante_nivel":"Senior"},"cliente":null,"barbero":{"id":"c00582e2-e86c-4482-931c-228ca1fa1cdc","email":"carlosjuarezgarrido13@gmail.com","nombre_completo":"Carlos Mendoza"}}
+[reservas] 2026-06-22T18:06:51.997Z - Precio base encontrado: 35, Créditos a ganar: 35
+[reservas] 2026-06-22T18:06:52.173Z - Error leyendo perfil: Cannot coerce the result to a single JSON object
+[reservas] 2026-06-22T18:06:52.174Z - Créditos actuales: 0, Nuevos: 35 para usuario 25a7965f-2208-4739-b50e-b26755317101
+[reservas] 2026-06-22T18:06:52.342Z - Cita completada. Créditos otorgados al usuario 25a7965f-2208-4739-b50e-b26755317101: +35 pts. Total: 35
+[gestion-citas] 2026-06-22T18:06:52.860Z - Rol del usuario: barbero, ID: c00582e2-e86c-4482-931c-228ca1fa1cdc
+[gestion-citas] 2026-06-22T18:06:53.025Z - Se encontraron 10 citas.
+[gestion-citas] 2026-06-22T18:06:53.028Z - Primera cita raw: {"id":"3144c07d-af10-436c-b0ac-c96e9875090b","fecha_hora_inicio":"2026-06-29T16:30:00+00:00","estado":"completada","services":{"nombre":"Corte Clásico","precio_base":35,"variante_nivel":"Senior"},"cliente":null,"barbero":{"id":"c00582e2-e86c-4482-931c-228ca1fa1cdc","email":"carlosjuarezgarrido13@gmail.com","nombre_completo":"Carlos Mendoza"}}
+[gestion-citas] 2026-06-22T18:09:18.367Z - Rol del usuario: barbero, ID: c00582e2-e86c-4482-931c-228ca1fa1cdc
+[gestion-citas] 2026-06-22T18:09:18.600Z - Se encontraron 10 citas.
+[gestion-citas] 2026-06-22T18:09:18.602Z - Primera cita raw: {"id":"3144c07d-af10-436c-b0ac-c96e9875090b","fecha_hora_inicio":"2026-06-29T16:30:00+00:00","estado":"completada","services":{"nombre":"Corte Clásico","precio_base":35,"variante_nivel":"Senior"},"cliente":{"email":"carlosjuarezgarrido15@gmail.com","nombre_completo":"CarlJonson","es_miembro_elite":true},"barbero":{"id":"c00582e2-e86c-4482-931c-228ca1fa1cdc","email":"carlosjuarezgarrido13@gmail.com","nombre_completo":"Carlos Mendoza"}}
+[gestion-citas] 2026-06-22T18:09:56.017Z - Rol del usuario: barbero, ID: c00582e2-e86c-4482-931c-228ca1fa1cdc
+[gestion-citas] 2026-06-22T18:09:56.346Z - Se encontraron 11 citas.
+[gestion-citas] 2026-06-22T18:09:56.350Z - Primera cita raw: {"id":"3144c07d-af10-436c-b0ac-c96e9875090b","fecha_hora_inicio":"2026-06-29T16:30:00+00:00","estado":"completada","services":{"nombre":"Corte Clásico","precio_base":35,"variante_nivel":"Senior"},"cliente":{"email":"carlosjuarezgarrido15@gmail.com","nombre_completo":"CarlJonson","es_miembro_elite":true},"barbero":{"id":"c00582e2-e86c-4482-931c-228ca1fa1cdc","email":"carlosjuarezgarrido13@gmail.com","nombre_completo":"Carlos Mendoza"}}
+[gestion-citas] 2026-06-22T18:10:03.743Z - Rol del usuario: barbero, ID: c00582e2-e86c-4482-931c-228ca1fa1cdc
+[gestion-citas] 2026-06-22T18:10:03.896Z - Se encontraron 11 citas.
+[gestion-citas] 2026-06-22T18:10:03.897Z - Primera cita raw: {"id":"3144c07d-af10-436c-b0ac-c96e9875090b","fecha_hora_inicio":"2026-06-29T16:30:00+00:00","estado":"completada","services":{"nombre":"Corte Clásico","precio_base":35,"variante_nivel":"Senior"},"cliente":{"email":"carlosjuarezgarrido15@gmail.com","nombre_completo":"CarlJonson","es_miembro_elite":true},"barbero":{"id":"c00582e2-e86c-4482-931c-228ca1fa1cdc","email":"carlosjuarezgarrido13@gmail.com","nombre_completo":"Carlos Mendoza"}}
+[reservas] 2026-06-22T18:10:05.522Z - Precio base encontrado: 60, Créditos a ganar: 60
+[reservas] 2026-06-22T18:10:05.672Z - Créditos actuales: 112, Nuevos: 172 para usuario 25a7965f-2208-4739-b50e-b26755317101
+[reservas] 2026-06-22T18:10:05.837Z - Cita completada. Créditos otorgados al usuario 25a7965f-2208-4739-b50e-b26755317101: +60 pts. Total: 172
+[gestion-citas] 2026-06-22T18:10:06.403Z - Rol del usuario: barbero, ID: c00582e2-e86c-4482-931c-228ca1fa1cdc
+[gestion-citas] 2026-06-22T18:10:06.569Z - Se encontraron 11 citas.
+[gestion-citas] 2026-06-22T18:10:06.572Z - Primera cita raw: {"id":"3144c07d-af10-436c-b0ac-c96e9875090b","fecha_hora_inicio":"2026-06-29T16:30:00+00:00","estado":"completada","services":{"nombre":"Corte Clásico","precio_base":35,"variante_nivel":"Senior"},"cliente":{"email":"carlosjuarezgarrido15@gmail.com","nombre_completo":"CarlJonson","es_miembro_elite":true},"barbero":{"id":"c00582e2-e86c-4482-931c-228ca1fa1cdc","email":"carlosjuarezgarrido13@gmail.com","nombre_completo":"Carlos Mendoza"}}

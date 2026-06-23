@@ -1,9 +1,11 @@
 // src/app/checkout/page.tsx
 // Checkout con selección de envío, total dinámico e integración de pago simulado — RF-11, RF-13, RF-14
+// MODIFICACIÓN FASE 5 — integración ModalPago simulado
+// MODIFICACIÓN FASE 6 — canje de Groomer Credits (RF-18) y badge descuento Elite (RF-20)
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -13,10 +15,13 @@ import {
   Package,
   ShoppingBag,
   AlertCircle,
+  Star,
+  Coins,
 } from "lucide-react";
 import { useCartStore } from "@/lib/cart-store";
 import {
   calcularTotal,
+  calcularDescuentoCreditos,
   COSTOS_ENVIO,
   formatCurrency,
 } from "@/lib/utils";
@@ -59,7 +64,7 @@ const OPCIONES_ENVIO: {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, subtotal, clearCart } = useCartStore();
+  const { items, subtotal, subtotalSinDescuento, esMiembroElite, setEsMiembroElite, clearCart } = useCartStore();
   const [metodoEnvio, setMetodoEnvio] = useState<MetodoEnvio>("Recojo");
 
   // MODIFICACIÓN FASE 5 — inicio
@@ -68,9 +73,41 @@ export default function CheckoutPage() {
   const [errorPago, setErrorPago] = useState<string | null>(null);
   // MODIFICACIÓN FASE 5 — fin
 
+  // MODIFICACIÓN FASE 6 — inicio
+  const [creditosDisponibles, setCreditosDisponibles] = useState(0);
+  const [bloquesCreditos, setBloquesCreditos] = useState(0); // cada bloque = 100 pts = S/5
+  const [cargandoPerfil, setCargandoPerfil] = useState(true);
+
+  // Cargar créditos y estado Elite del usuario al montar
+  useEffect(() => {
+    async function cargarPerfil() {
+      try {
+        const res = await fetch("/api/perfil");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.perfil) {
+          setCreditosDisponibles(data.perfil.groomer_credits ?? 0);
+          // Sincronizar el estado Elite con el cart-store
+          setEsMiembroElite(data.perfil.es_miembro_elite ?? false);
+        }
+      } catch {
+        // Ignorar errores de perfil; no bloquea el checkout
+      } finally {
+        setCargandoPerfil(false);
+      }
+    }
+    cargarPerfil();
+  }, [setEsMiembroElite]);
+
+  const maxBloques = Math.floor(creditosDisponibles / 100);
+  const descuentoCreditos = calcularDescuentoCreditos(bloquesCreditos * 100);
   const costoEnvio = COSTOS_ENVIO[metodoEnvio];
-  const sub = subtotal();
-  const total = calcularTotal(sub, costoEnvio);
+  const sub = subtotal(); // ya incluye 15% Elite si aplica
+  const subBruto = subtotalSinDescuento();
+  const descuentoElite = esMiembroElite ? subBruto - sub : 0;
+  const total = calcularTotal(sub, costoEnvio, descuentoCreditos);
+  const creditosAUsar = bloquesCreditos * 100;
+  // MODIFICACIÓN FASE 6 — fin
 
   // Si el carrito está vacío, redirigir al catálogo
   if (items.length === 0) {
@@ -108,6 +145,9 @@ export default function CheckoutPage() {
         subtotal: sub,
         costo_envio: costoEnvio,
         total: total,
+        // MODIFICACIÓN FASE 6 — inicio
+        creditos_usados: creditosAUsar, // RF-18: créditos canjeados
+        // MODIFICACIÓN FASE 6 — fin
       };
 
       const res = await fetch("/api/orders", {
@@ -228,6 +268,76 @@ export default function CheckoutPage() {
             </div>
           </section>
 
+          {/* MODIFICACIÓN FASE 6 — inicio */}
+
+          {/* Badge descuento Elite — RF-20 */}
+          {esMiembroElite && (
+            <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <Star className="w-4 h-4 text-amber-500 flex-shrink-0 fill-amber-400" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-amber-800">
+                  ✦ Descuento Elite 15% aplicado
+                </p>
+                <p className="text-xs text-amber-600 mt-0.5">
+                  Ahorro: {formatCurrency(descuentoElite)} en esta compra
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Canje de Groomer Credits — RF-18 */}
+          {!cargandoPerfil && creditosDisponibles > 0 && (
+            <section className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <Coins className="w-4 h-4 text-amber-500" />
+                <h2 className="text-sm font-semibold text-slate-700">
+                  Groomer Credits
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 mb-3">
+                Tienes{" "}
+                <span className="font-bold text-amber-600">
+                  {creditosDisponibles} pts
+                </span>{" "}
+                disponibles. Cada 100 pts = {formatCurrency(5)} de descuento.
+              </p>
+              {maxBloques === 0 ? (
+                <p className="text-xs text-slate-400 italic">
+                  Necesitas al menos 100 pts para canjear.
+                </p>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <label
+                    htmlFor="bloques-creditos"
+                    className="text-xs font-medium text-slate-600 shrink-0"
+                  >
+                    Bloques a usar:
+                  </label>
+                  <input
+                    id="bloques-creditos"
+                    type="range"
+                    min={0}
+                    max={maxBloques}
+                    value={bloquesCreditos}
+                    onChange={(e) => setBloquesCreditos(Number(e.target.value))}
+                    className="flex-1 accent-amber-500"
+                  />
+                  <span className="text-sm font-bold text-amber-600 shrink-0 min-w-[60px] text-right">
+                    -{formatCurrency(descuentoCreditos)}
+                  </span>
+                </div>
+              )}
+              {bloquesCreditos > 0 && (
+                <p className="text-xs text-green-600 mt-2 font-medium">
+                  ✓ Canjeando {bloquesCreditos * 100} pts por{" "}
+                  {formatCurrency(descuentoCreditos)} de descuento
+                </p>
+              )}
+            </section>
+          )}
+
+          {/* MODIFICACIÓN FASE 6 — fin */}
+
           {/* Resumen de totales — RF-14 */}
           <section className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-700 mb-4">
@@ -236,7 +346,18 @@ export default function CheckoutPage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-slate-600">
                 <span>Subtotal</span>
-                <span>{formatCurrency(sub)}</span>
+                {/* MODIFICACIÓN FASE 6 — inicio */}
+                {esMiembroElite ? (
+                  <span className="flex items-center gap-2">
+                    <span className="line-through text-slate-400 text-xs">
+                      {formatCurrency(subBruto)}
+                    </span>
+                    <span>{formatCurrency(sub)}</span>
+                  </span>
+                ) : (
+                  <span>{formatCurrency(sub)}</span>
+                )}
+                {/* MODIFICACIÓN FASE 6 — fin */}
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Envío ({metodoEnvio.replace("_", " ")})</span>
@@ -244,6 +365,20 @@ export default function CheckoutPage() {
                   {costoEnvio === 0 ? "Gratis" : formatCurrency(costoEnvio)}
                 </span>
               </div>
+              {/* MODIFICACIÓN FASE 6 — inicio */}
+              {esMiembroElite && (
+                <div className="flex justify-between text-amber-600 text-xs font-medium">
+                  <span>✦ Descuento Elite (15%)</span>
+                  <span>-{formatCurrency(descuentoElite)}</span>
+                </div>
+              )}
+              {bloquesCreditos > 0 && (
+                <div className="flex justify-between text-green-600 text-xs font-medium">
+                  <span>Groomer Credits ({bloquesCreditos * 100} pts)</span>
+                  <span>-{formatCurrency(descuentoCreditos)}</span>
+                </div>
+              )}
+              {/* MODIFICACIÓN FASE 6 — fin */}
               <div className="flex justify-between font-bold text-slate-900 text-base pt-2 border-t border-slate-100 mt-2">
                 <span>Total a pagar</span>
                 <span>{formatCurrency(total)}</span>

@@ -1,6 +1,7 @@
 // src/app/dashboard/gestion-citas/page.tsx
 // Vista de gestión de citas para rol 'barbero' y 'admin' (RF-07, RF-03)
 // Barbero: ve sus citas asignadas. Admin: ve todas con filtros.
+// MODIFICACIÓN FASE 6 — badge de Prioridad Elite en citas de miembros Elite (RF-20)
 
 "use client";
 
@@ -17,7 +18,13 @@ interface CitaGestion {
     precio_base: number;
     variante_nivel: string;
   } | null;
-  cliente: { nombre_completo: string; email: string } | null;
+  // MODIFICACIÓN FASE 6 — inicio
+  cliente: {
+    nombre_completo: string;
+    email: string;
+    es_miembro_elite: boolean;
+  } | null;
+  // MODIFICACIÓN FASE 6 — fin
   barbero: { id: string; nombre_completo: string; email: string } | null;
 }
 
@@ -209,13 +216,22 @@ export default function GestionCitasPage() {
                     </p>
                   )}
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${
-                    BADGE_ESTADO[cita.estado]
-                  }`}
-                >
-                  {cita.estado}
-                </span>
+                {/* MODIFICACIÓN FASE 6 — inicio */}
+                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${
+                      BADGE_ESTADO[cita.estado]
+                    }`}
+                  >
+                    {cita.estado}
+                  </span>
+                  {cita.cliente?.es_miembro_elite && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-200">
+                      ★ Prioridad Elite
+                    </span>
+                  )}
+                </div>
+                {/* MODIFICACIÓN FASE 6 — fin */}
               </div>
 
               {/* Fecha y precio */}

@@ -1,6 +1,7 @@
 // src/app/dashboard/layout.tsx
 // Layout del dashboard: barra inferior en mobile, lateral en desktop
 // Navegación condicional según rol del usuario
+// MODIFICACIÓN FASE 6 — nav items Mis créditos y Membresía Elite (RF-16, RF-19)
 
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -89,6 +90,37 @@ const ShoppingBagIcon = () => (
 );
 // MODIFICACIÓN FASE 5 — fin
 
+// MODIFICACIÓN FASE 6 — inicio
+const CoinsIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    width={22}
+    height={22}
+    aria-hidden="true"
+  >
+    <circle cx="8" cy="8" r="5" />
+    <path strokeLinecap="round" d="M16.5 8.5c.83.63 1.5 1.7 1.5 3a5 5 0 01-5 5" />
+    <path strokeLinecap="round" d="M19 14c.62.72 1 1.68 1 2.5a4.5 4.5 0 01-4.5 4.5" />
+  </svg>
+);
+const StarIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    width={22}
+    height={22}
+    aria-hidden="true"
+  >
+    <polygon strokeLinejoin="round" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  </svg>
+);
+// MODIFICACIÓN FASE 6 — fin
+
 interface NavItem {
   href: string;
   label: string;
@@ -137,6 +169,20 @@ const navItems: NavItem[] = [
     roles: ["cliente"],
   },
   // MODIFICACIÓN FASE 5 — fin
+  // MODIFICACIÓN FASE 6 — inicio
+  {
+    href: "/dashboard/creditos",
+    label: "Mis créditos",
+    icon: <CoinsIcon />,
+    roles: ["cliente"],
+  },
+  {
+    href: "/dashboard/membresia",
+    label: "Membresía Elite",
+    icon: <StarIcon />,
+    roles: ["cliente"],
+  },
+  // MODIFICACIÓN FASE 6 — fin
   {
     href: "/dashboard/perfil",
     label: "Perfil",

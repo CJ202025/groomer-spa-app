@@ -1,9 +1,22 @@
 // src/app/api/reservas/[id]/route.ts
 // PATCH → cambiar estado de una cita con control de rol (RF-07, RF-03)
+// MODIFICACIÓN FASE 6 — acumulación de Groomer Credits al completar cita (RF-16)
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import type { EstadoCita, Rol } from "@/types/database";
+import * as fs from "fs";
+import * as path from "path";
+
+function logDebug(msg: string) {
+  try {
+    fs.appendFileSync(path.join(process.cwd(), "debug.log"), `[reservas] ${new Date().toISOString()} - ${msg}\n`);
+    console.log(`[reservas] ${msg}`);
+  } catch (e) {}
+}
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const TRANSICIONES_VALIDAS: Record<EstadoCita, EstadoCita[]> = {
   pendiente: ["confirmada", "cancelada"],
@@ -98,6 +111,57 @@ export async function PATCH(
   if (errorUpdate) {
     return NextResponse.json({ error: errorUpdate.message }, { status: 500 });
   }
+
+  // MODIFICACIÓN FASE 6 — inicio
+  // RF-16: acumular créditos al dueño de la cita cuando el estado cambia a 'completada'
+  if (nuevoEstado === "completada" && cita.servicio_id) {
+    // BUGFIX: usar adminClient para TODAS las queries de este bloque.
+    // La query de services con el cliente del barbero puede ser bloqueada por RLS,
+    // retornando null y saltando silenciosamente todo el bloque de créditos.
+    const adminClient = await createAdminClient();
+
+    // Consultar precio_base del servicio (con adminClient para bypassear RLS)
+    const { data: servicio, error: errorServicio } = await (adminClient as any)
+      .from("services")
+      .select("precio_base")
+      .eq("id", cita.servicio_id)
+      .single();
+
+    if (errorServicio) {
+      console.error(`[reservas/${id}] No se pudo leer el servicio ${cita.servicio_id}:`, errorServicio);
+    }
+
+    if (servicio?.precio_base) {
+      const creditosGanados = Math.floor(servicio.precio_base);
+      logDebug(`Precio base encontrado: ${servicio.precio_base}, Créditos a ganar: ${creditosGanados}`);
+
+      const { data: perfilDueno, error: errorPerfil } = await (adminClient as any)
+        .from("users")
+        .select("groomer_credits")
+        .eq("id", cita.usuario_id)
+        .single();
+        
+      if (errorPerfil) logDebug(`Error leyendo perfil: ${errorPerfil.message}`);
+
+      const creditosActuales: number = perfilDueno?.groomer_credits ?? 0;
+      const nuevosSaldo = creditosActuales + creditosGanados;
+      logDebug(`Créditos actuales: ${creditosActuales}, Nuevos: ${nuevosSaldo} para usuario ${cita.usuario_id}`);
+
+      const { error: errorCreditos } = await (adminClient as any)
+        .from("users")
+        .update({ groomer_credits: nuevosSaldo })
+        .eq("id", cita.usuario_id);
+
+      if (errorCreditos) {
+        logDebug(`ERROR actualizando créditos: ${JSON.stringify(errorCreditos)}`);
+      } else {
+        logDebug(`Cita completada. Créditos otorgados al usuario ${cita.usuario_id}: +${creditosGanados} pts. Total: ${nuevosSaldo}`);
+      }
+    } else {
+      logDebug(`El servicio no tiene precio_base o no se encontró. data: ${JSON.stringify(servicio)}`);
+    }
+  }
+  // MODIFICACIÓN FASE 6 — fin
 
   return NextResponse.json({ cita: citaActualizada });
 }

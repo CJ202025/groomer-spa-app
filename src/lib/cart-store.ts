@@ -1,5 +1,7 @@
 // src/lib/cart-store.ts
 // Estado global del carrito — Fase 4
+// MODIFICACIÓN FASE 6 — inicio: se agrega campo esMiembroElite y acción setEsMiembroElite
+// El selector subtotal() aplica 15% de descuento si esMiembroElite = true (RF-20)
 
 "use client";
 
@@ -18,6 +20,11 @@ interface CartStore {
     items: CartItem[];
     isOpen: boolean;
 
+    // MODIFICACIÓN FASE 6 — inicio
+    esMiembroElite: boolean;
+    setEsMiembroElite: (valor: boolean) => void;
+    // MODIFICACIÓN FASE 6 — fin
+
     // Acciones
     addItem: (product: Product) => void;
     removeItem: (productId: string) => void;
@@ -29,6 +36,7 @@ interface CartStore {
 
     // Selectores derivados
     totalItems: () => number;
+    subtotalSinDescuento: () => number;
     subtotal: () => number;
 }
 
@@ -39,6 +47,11 @@ export const useCartStore = create<CartStore>()(
         (set, get) => ({
             items: [],
             isOpen: false,
+
+            // MODIFICACIÓN FASE 6 — inicio
+            esMiembroElite: false,
+            setEsMiembroElite: (valor: boolean) => set({ esMiembroElite: valor }),
+            // MODIFICACIÓN FASE 6 — fin
 
             // ── Acciones ─────────────────────────────────────────────────────────────
 
@@ -88,16 +101,34 @@ export const useCartStore = create<CartStore>()(
 
             totalItems: () => get().items.reduce((sum, i) => sum + i.cantidad, 0),
 
-            subtotal: () =>
+            // MODIFICACIÓN FASE 6 — inicio
+            // Subtotal bruto sin ningún descuento (útil para mostrar precio original)
+            subtotalSinDescuento: () =>
                 get().items.reduce(
                     (sum, i) => sum + i.product.precio * i.cantidad,
                     0
                 ),
+
+            // Subtotal con descuento Elite del 15% si aplica (RF-20)
+            subtotal: () => {
+                const base = get().items.reduce(
+                    (sum, i) => sum + i.product.precio * i.cantidad,
+                    0
+                );
+                if (get().esMiembroElite) {
+                    return base * 0.85; // 15% de descuento automático
+                }
+                return base;
+            },
+            // MODIFICACIÓN FASE 6 — fin
         }),
         {
             name: "groomer-cart",
-            // Solo persistir items, no el estado del drawer
-            partialize: (state) => ({ items: state.items }),
+            // Solo persistir items y estado Elite, no el drawer
+            partialize: (state) => ({
+                items: state.items,
+                esMiembroElite: state.esMiembroElite,
+            }),
         }
     )
 );

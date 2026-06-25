@@ -1,0 +1,76 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.users (
+  id uuid NOT NULL,
+  nombre_completo text NOT NULL,
+  email text NOT NULL UNIQUE,
+  telefono text,
+  dni_ce text,
+  rol USER-DEFINED NOT NULL DEFAULT 'cliente'::rol,
+  groomer_credits integer NOT NULL DEFAULT 0,
+  es_miembro_elite boolean NOT NULL DEFAULT false,
+  fecha_nacimiento date,
+  CONSTRAINT users_pkey PRIMARY KEY (id),
+  CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.services (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  sku text NOT NULL UNIQUE,
+  nombre text NOT NULL,
+  descripcion_corta text NOT NULL,
+  descripcion_larga text NOT NULL,
+  precio_base numeric NOT NULL,
+  duracion_minutos integer,
+  variante_nivel USER-DEFINED NOT NULL,
+  CONSTRAINT services_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.products (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  sku text NOT NULL UNIQUE,
+  nombre text NOT NULL,
+  descripcion text NOT NULL,
+  precio numeric NOT NULL,
+  stock_actual integer NOT NULL DEFAULT 0,
+  stock_minimo integer NOT NULL DEFAULT 0,
+  categoria text NOT NULL,
+  es_dropshipping boolean NOT NULL DEFAULT false,
+  CONSTRAINT products_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.appointments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  usuario_id uuid NOT NULL,
+  servicio_id uuid NOT NULL,
+  barbero_id uuid NOT NULL,
+  fecha_hora_inicio timestamp with time zone NOT NULL,
+  estado USER-DEFINED NOT NULL DEFAULT 'pendiente'::estado_cita,
+  CONSTRAINT appointments_pkey PRIMARY KEY (id),
+  CONSTRAINT appointments_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.users(id),
+  CONSTRAINT appointments_servicio_id_fkey FOREIGN KEY (servicio_id) REFERENCES public.services(id),
+  CONSTRAINT appointments_barbero_id_fkey FOREIGN KEY (barbero_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.orders (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  usuario_id uuid NOT NULL,
+  total numeric NOT NULL,
+  subtotal numeric NOT NULL,
+  costo_envio numeric NOT NULL DEFAULT 0,
+  metodo_envio USER-DEFINED NOT NULL,
+  estado_pedido USER-DEFINED NOT NULL DEFAULT 'confirmado'::estado_pedido,
+  token_pago text,
+  boleta_url text,
+  CONSTRAINT orders_pkey PRIMARY KEY (id),
+  CONSTRAINT orders_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.order_items (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  pedido_id uuid NOT NULL,
+  producto_id uuid,
+  servicio_id uuid,
+  cantidad integer NOT NULL DEFAULT 1,
+  subtotal numeric NOT NULL,
+  CONSTRAINT order_items_pkey PRIMARY KEY (id),
+  CONSTRAINT order_items_pedido_id_fkey FOREIGN KEY (pedido_id) REFERENCES public.orders(id),
+  CONSTRAINT order_items_producto_id_fkey FOREIGN KEY (producto_id) REFERENCES public.products(id),
+  CONSTRAINT order_items_servicio_id_fkey FOREIGN KEY (servicio_id) REFERENCES public.services(id)
+);

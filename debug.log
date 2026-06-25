@@ -32,3 +32,6 @@
 [gestion-citas] 2026-06-22T18:10:06.403Z - Rol del usuario: barbero, ID: c00582e2-e86c-4482-931c-228ca1fa1cdc
 [gestion-citas] 2026-06-22T18:10:06.569Z - Se encontraron 11 citas.
 [gestion-citas] 2026-06-22T18:10:06.572Z - Primera cita raw: {"id":"3144c07d-af10-436c-b0ac-c96e9875090b","fecha_hora_inicio":"2026-06-29T16:30:00+00:00","estado":"completada","services":{"nombre":"Corte Clásico","precio_base":35,"variante_nivel":"Senior"},"cliente":{"email":"carlosjuarezgarrido15@gmail.com","nombre_completo":"CarlJonson","es_miembro_elite":true},"barbero":{"id":"c00582e2-e86c-4482-931c-228ca1fa1cdc","email":"carlosjuarezgarrido13@gmail.com","nombre_completo":"Carlos Mendoza"}}
+[reservas] 2026-06-25T20:56:01.394Z - Precio base encontrado: 35, Créditos a ganar: 35
+[reservas] 2026-06-25T20:56:01.529Z - Créditos actuales: 172, Nuevos: 207 para usuario 25a7965f-2208-4739-b50e-b26755317101
+[reservas] 2026-06-25T20:56:01.676Z - Cita completada. Créditos otorgados al usuario 25a7965f-2208-4739-b50e-b26755317101: +35 pts. Total: 207

@@ -1,11 +1,15 @@
 // src/app/layout.tsx
 // Layout raíz — incluye CartDrawer y CartIcon disponibles globalmente — Fase 4
+// MODIFICACIÓN FASE 8 — agrega ChatbotWidget visible en toda la app (RF-24)
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { CartDrawer } from "@/components/checkout/CartDrawer";
 import { CartIcon } from "@/components/ui/CartIcon";
+// MODIFICACIÓN FASE 8 — inicio
+import { ChatbotWidget } from "@/components/ui/ChatbotWidget";
+// MODIFICACIÓN FASE 8 — fin
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -56,6 +60,11 @@ export default function RootLayout({
 
         {/* Drawer del carrito — disponible globalmente — RF-10 */}
         <CartDrawer />
+
+        {/* MODIFICACIÓN FASE 8 — inicio */}
+        {/* Widget de chatbot flotante — visible en toda la app — RF-24 */}
+        <ChatbotWidget />
+        {/* MODIFICACIÓN FASE 8 — fin */}
       </body>
     </html>
   );

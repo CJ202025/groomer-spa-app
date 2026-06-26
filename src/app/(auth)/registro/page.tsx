@@ -85,7 +85,7 @@ export default function RegistroPage() {
             password: form.password,
             options: {
                 data: { full_name: form.nombre_completo },
-                emailRedirectTo: `${window.location.origin}/auth/callback`,
+                emailRedirectTo: `${window.location.origin}/callback`,
             },
         });
 
@@ -108,7 +108,7 @@ export default function RegistroPage() {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: `${window.location.origin}/auth/callback`,
+                redirectTo: `${window.location.origin}/callback`,
             },
         });
         if (error) {

@@ -1,12 +1,17 @@
 // src/app/api/reservas/[id]/route.ts
 // PATCH → cambiar estado de una cita con control de rol (RF-07, RF-03)
 // MODIFICACIÓN FASE 6 — acumulación de Groomer Credits al completar cita (RF-16)
+// MODIFICACIÓN FASE 8 — email de confirmación de cita al confirmar (RF-26)
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import type { EstadoCita, Rol } from "@/types/database";
 import * as fs from "fs";
 import * as path from "path";
+// MODIFICACIÓN FASE 8 — inicio
+import { sendEmail } from "@/lib/email/sender";
+import { templateConfirmacionCita } from "@/lib/email/templates";
+// MODIFICACIÓN FASE 8 — fin
 
 function logDebug(msg: string) {
   try {
@@ -162,6 +167,57 @@ export async function PATCH(
     }
   }
   // MODIFICACIÓN FASE 6 — fin
+
+  // MODIFICACIÓN FASE 8 — inicio
+  // RF-26: Enviar email de confirmación de cita cuando el estado cambia a 'confirmada'
+  if (nuevoEstado === "confirmada") {
+    try {
+      const adminClient = await createAdminClient();
+
+      // Obtener datos completos de la cita: usuario, servicio, barbero
+      const { data: citaCompleta } = await (adminClient as any)
+        .from("appointments")
+        .select(`
+          fecha_hora_inicio,
+          services(nombre),
+          barberoUser:users!appointments_barbero_id_fkey(nombre_completo),
+          clienteUser:users!appointments_usuario_id_fkey(email, nombre_completo)
+        `)
+        .eq("id", id)
+        .single();
+
+      if (citaCompleta?.clienteUser?.email) {
+        const fechaObj = new Date(citaCompleta.fecha_hora_inicio);
+        const fechaFormateada = fechaObj.toLocaleDateString("es-PE", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+        const horaFormateada = fechaObj.toLocaleTimeString("es-PE", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        sendEmail(
+          citaCompleta.clienteUser.email,
+          "Tu cita en Groomer SPA ha sido confirmada ✂️",
+          templateConfirmacionCita({
+            servicio: citaCompleta.services?.nombre ?? "Servicio",
+            barbero: citaCompleta.barberoUser?.nombre_completo ?? "Nuestro especialista",
+            fecha: fechaFormateada,
+            hora: horaFormateada,
+            estado: "confirmada",
+          })
+        ).catch((err) =>
+          console.error("[reservas/id] Error enviando email de confirmación de cita:", err)
+        );
+      }
+    } catch (emailErr) {
+      console.error("[reservas/id] Error preparando email de confirmación:", emailErr);
+    }
+  }
+  // MODIFICACIÓN FASE 8 — fin
 
   return NextResponse.json({ cita: citaActualizada });
 }

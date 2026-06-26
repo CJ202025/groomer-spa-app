@@ -1,8 +1,13 @@
 // src/app/(auth)/callback/route.ts
 // Maneja el redirect de Google OAuth y el flujo PKCE de Supabase
+// MODIFICACIÓN FASE 8 — email de bienvenida al registrarse (RF-26)
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+// MODIFICACIÓN FASE 8 — inicio
+import { sendEmail } from "@/lib/email/sender";
+import { templateBienvenida } from "@/lib/email/templates";
+// MODIFICACIÓN FASE 8 — fin
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -17,12 +22,31 @@ export async function GET(request: Request) {
       // Determinar redirección según rol
       const { data: profile } = await (supabase as any)
         .from("users")
-        .select("rol")
+        .select("rol, nombre_completo")
         .eq("id", data.user.id)
         .single();
 
       const rol = profile?.rol ?? "cliente";
       const destination = rol === "admin" ? "/admin" : next;
+
+      // MODIFICACIÓN FASE 8 — inicio
+      // RF-26: Enviar email de bienvenida al registrarse (fire-and-forget)
+      const emailDestino = data.user.email;
+      const nombreUsuario = profile?.nombre_completo ||
+        data.user.user_metadata?.full_name ||
+        data.user.user_metadata?.name ||
+        "Cliente";
+
+      if (emailDestino) {
+        sendEmail(
+          emailDestino,
+          "¡Bienvenido a Groomer SPA! 🎉",
+          templateBienvenida(nombreUsuario)
+        ).catch((err) =>
+          console.error("[callback] Error enviando email de bienvenida:", err)
+        );
+      }
+      // MODIFICACIÓN FASE 8 — fin
 
       return NextResponse.redirect(`${origin}${destination}`);
     }

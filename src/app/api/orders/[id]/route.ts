@@ -1,10 +1,15 @@
 // src/app/api/orders/[id]/route.ts
 // GET  — Obtener datos de una orden por ID (confirmación y dashboard)
 // PATCH — Actualizar estado logístico del pedido (RF-22, solo admin)
+// MODIFICACIÓN FASE 8 — email de actualización de pedido al cambiar estado (RF-26)
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { EstadoPedido } from "@/types/database";
+// MODIFICACIÓN FASE 8 — inicio
+import { sendEmail } from "@/lib/email/sender";
+import { templateActualizacionPedido } from "@/lib/email/templates";
+// MODIFICACIÓN FASE 8 — fin
 
 // ── GET /api/orders/[id] ──────────────────────────────────────────────────────
 
@@ -213,6 +218,36 @@ export async function PATCH(
       { status: 500 }
     );
   }
+
+  // MODIFICACIÓN FASE 8 — inicio
+  // RF-26: Enviar email al cliente cuando el estado del pedido es actualizado
+  try {
+    // Obtener email del cliente dueño del pedido
+    const { data: ordenCompleta } = await (supabase as any)
+      .from("orders")
+      .select("total, metodo_envio, usuario_id, users(email, nombre_completo)")
+      .eq("id", orderId)
+      .single();
+
+    const emailCliente = ordenCompleta?.users?.email;
+    if (emailCliente) {
+      sendEmail(
+        emailCliente,
+        `Tu pedido de Groomer SPA ha sido actualizado`,
+        templateActualizacionPedido({
+          numeroPedido: orderId,
+          total: ordenCompleta?.total ?? 0,
+          nuevoEstado: estado_pedido,
+          metodoEnvio: ordenCompleta?.metodo_envio,
+        })
+      ).catch((err) =>
+        console.error("[orders/id] Error enviando email de actualización:", err)
+      );
+    }
+  } catch (emailErr) {
+    console.error("[orders/id] Error preparando email de actualización:", emailErr);
+  }
+  // MODIFICACIÓN FASE 8 — fin
 
   return NextResponse.json({ order: updated }, { status: 200 });
 }
